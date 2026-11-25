@@ -1,1345 +1,1030 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NagozLibrary — Student Literary Archive & Micro-Press</title>
-    <meta name="description" content="A student-run literary collective, micro-press, and digital archive rooted at KIIT University and open to student writers globally.">
-    <meta name="theme-color" content="#0D9488">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="NagozLibrary">
-    <link id="pwa-manifest" rel="manifest" href="">
-    
-    <!-- Google Fonts: Newsreader (Editorial Serif) & Plus Jakarta Sans (Clean UI Sans) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- QRCode.js for crisp scannable QR generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NagozLibrary — Student Literary Archive &amp; Micro-Press</title>
+  <meta name="description" content="A student-run literary collective, digital archive, and editorial desk amplifying KIIT University and global student writers." />
+  <meta name="theme-color" content="#111827" />
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        paper: '#FFFFFF',
-                        paperDark: '#F8F9FA',
-                        ink: '#111827',
-                        obsidian: '#09090B',
-                        inkMuted: '#4B5563',
-                        tealAccent: '#0D9488',
-                        tealHover: '#0F766E',
-                        tealLight: '#CCFBF1',
-                        mustard: '#D97706',
-                        mustardBright: '#EAB308',
-                        mustardLight: '#FEF3C7',
-                        borderWarm: '#E5E7EB',
-                        borderStrong: '#D1D5DB'
-                    },
-                    fontFamily: {
-                        serif: ['"Newsreader"', 'Georgia', 'serif'],
-                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-                    }
-                }
+  <!-- PWA Inline Manifest -->
+  <link rel="manifest" id="pwa-manifest" />
+
+  <!-- Google Fonts: Newsreader (Editorial Serif) & Plus Jakarta Sans (Clean UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#09090B',
+            charcoal: '#111827',
+            archival: '#F8F9FA',
+            teal: {
+              DEFAULT: '#0D9488',
+              dark: '#0F766E',
+              light: '#F0FDFA',
+            },
+            mustard: {
+              DEFAULT: '#D97706',
+              dark: '#B45309',
+              light: '#FFFBEB',
             }
+          },
+          fontFamily: {
+            serif: ['Newsreader', 'Georgia', 'serif'],
+            sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+          }
         }
-    </script>
+      }
+    };
+  </script>
+
+  <!-- QRCode.js & PapaParse (Google Sheets Live CSV Engine) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <style>
+    body {
+      background-color: #FFFFFF;
+      color: #111827;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+    .font-editorial {
+      font-family: 'Newsreader', Georgia, serif;
+    }
+    .line-clamp-4 {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .qr-box img, .qr-box canvas {
+      margin: 0 auto;
+      display: block;
+    }
+  </style>
 </head>
-<body class="bg-paper text-ink font-sans antialiased selection:bg-tealAccent selection:text-white">
+<body class="antialiased selection:bg-teal/20 selection:text-charcoal">
 
-    <!-- Toast Notification Banner (Replaces alert) -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 pointer-events-none flex flex-col gap-2"></div>
+  <!-- Top Announcement Strip -->
+  <div class="bg-charcoal text-white text-xs py-2 px-4 text-center tracking-wide border-b border-gray-800">
+    <span class="inline-block w-2 h-2 rounded-full bg-mustard mr-2 align-middle"></span>
+    Issue #01 Open for Submissions — <span class="text-gray-300">KIIT University &amp; Global Student Writers</span>
+  </div>
 
-    <!-- Sticky Header Navigation -->
-    <header class="sticky top-0 z-40 bg-paper/95 backdrop-blur-md border-b border-borderWarm">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-            <!-- Brand Logo -->
-            <a href="#" class="flex items-center gap-2.5 group">
-                <div class="w-9 h-9 rounded-lg bg-obsidian text-paper border border-tealAccent/40 flex items-center justify-center font-serif text-xl font-semibold shadow-sm group-hover:bg-tealAccent transition-colors">
-                    N
-                </div>
-                <div>
-                    <span class="font-serif text-xl sm:text-2xl font-medium tracking-tight text-obsidian block leading-none">NagozLibrary</span>
-                    <span class="text-[10px] uppercase tracking-[0.2em] text-inkMuted font-medium block mt-0.5">Student Micro-Press</span>
-                </div>
+  <!-- Navigation Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-lg bg-charcoal text-white flex items-center justify-center font-editorial font-semibold text-xl tracking-tight group-hover:bg-teal transition-colors">
+          N
+        </div>
+        <div>
+          <span class="font-editorial text-xl font-semibold tracking-tight text-charcoal block leading-none">NagozLibrary</span>
+          <span class="text-[10px] uppercase tracking-widest text-gray-500 font-medium">Student Micro-Press</span>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-gray-600">
+        <a href="#shelf" class="hover:text-charcoal transition-colors">The Shelf</a>
+        <a href="#tracks" class="hover:text-charcoal transition-colors">Publishing Tracks</a>
+        <a href="#qr-access" class="hover:text-charcoal transition-colors">QR &amp; App</a>
+        <button onclick="openCmsModal()" class="text-gray-600 hover:text-teal transition-colors flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-teal"></span>
+          Librarian CMS
+        </button>
+      </nav>
+
+      <div class="flex items-center gap-2.5">
+        <button id="install-nav-btn" onclick="triggerInstall()" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-charcoal hover:border-charcoal transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Install App
+        </button>
+        <a href="#submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-teal text-white hover:bg-teal-dark transition-colors shadow-sm">
+          Submit Draft
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="bg-archival border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+      <div class="max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-700 mb-6">
+          <span class="px-1.5 py-0.5 rounded bg-mustard-light text-mustard-dark font-semibold">Student Librarian Desk</span>
+          <span>KIIT University, Bhubaneswar &amp; Worldwide</span>
+        </div>
+
+        <h1 class="font-editorial text-4xl sm:text-6xl font-medium tracking-tight text-charcoal leading-[1.08] mb-6">
+          Great student writing shouldn’t die in a <span class="italic underline decoration-mustard decoration-2 underline-offset-4">Notes app.</span>
+        </h1>
+
+        <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 max-w-2xl">
+          NagozLibrary is a student-run literary archive, light-touch editorial desk, and social media amplifier. We curate raw student poetry, essays, and fiction—shelving them permanently online and pitching standout pieces to external journals.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-3.5">
+          <a href="#shelf" class="px-6 py-3 rounded-lg bg-charcoal text-white text-sm font-semibold hover:bg-obsidian transition-colors">
+            Browse The Shelf
+          </a>
+          <a href="#submit" class="px-6 py-3 rounded-lg bg-white border border-gray-300 text-charcoal text-sm font-semibold hover:border-charcoal transition-colors">
+            Submit Your Manuscript →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The Digital Shelf (Archive) -->
+  <section id="shelf" class="py-16 sm:py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div>
+          <div class="flex items-center gap-2.5 mb-2">
+            <span class="text-xs font-bold uppercase tracking-widest text-teal">Permanent Catalog</span>
+            <span id="cms-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-600">
+              <span class="w-1.5 h-1.5 rounded-full bg-mustard"></span>
+              Curated Starter Archive
+            </span>
+          </div>
+          <h2 class="font-editorial text-3xl sm:text-4xl font-medium text-charcoal">The Digital Shelf</h2>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative w-full md:w-72">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search title, author, theme..."
+            class="w-full pl-9 pr-4 py-2 text-sm bg-archival border border-gray-300 rounded-lg focus:outline-none focus:border-teal focus:bg-white transition-colors"
+          />
+          <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Filters Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-gray-200">
+        <!-- Genre Pills -->
+        <div id="genre-filters" class="flex flex-wrap gap-2">
+          <button data-genre="All" class="genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-charcoal text-white transition-colors">All Genres</button>
+          <button data-genre="Poetry" class="genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-archival text-gray-700 hover:bg-gray-200 transition-colors">Poetry</button>
+          <button data-genre="Personal Essays" class="genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-archival text-gray-700 hover:bg-gray-200 transition-colors">Personal Essays</button>
+          <button data-genre="Short Fiction" class="genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-archival text-gray-700 hover:bg-gray-200 transition-colors">Short Fiction</button>
+          <button data-genre="Cultural Commentary" class="genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-archival text-gray-700 hover:bg-gray-200 transition-colors">Cultural Commentary</button>
+        </div>
+
+        <!-- Affiliation Filter & Count -->
+        <div class="flex items-center gap-3">
+          <select id="affiliation-filter" class="px-3 py-1.5 text-xs font-semibold bg-white border border-gray-300 rounded-lg text-charcoal focus:outline-none focus:border-teal">
+            <option value="All">All Writers (KIIT &amp; Global)</option>
+            <option value="KIIT University">KIIT University Writers</option>
+            <option value="Global">Global Student Writers</option>
+          </select>
+          <span id="catalog-count" class="text-xs font-medium text-gray-500 whitespace-nowrap">0 pieces</span>
+        </div>
+      </div>
+
+      <!-- Articles Grid -->
+      <div id="writings-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically via JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden text-center py-16 px-4 bg-archival rounded-2xl border border-dashed border-gray-300">
+        <p class="font-editorial text-2xl text-charcoal mb-2">No manuscripts match that filter yet.</p>
+        <p class="text-sm text-gray-600 mb-5">Try clearing your search or be the first student to publish in this category.</p>
+        <button onclick="resetFilters()" class="px-4 py-2 rounded-lg bg-charcoal text-white text-xs font-semibold hover:bg-teal transition-colors">
+          Reset Filters
+        </button>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div id="pagination-wrap" class="mt-10 text-center hidden">
+        <button id="load-more-btn" onclick="loadMoreWritings()" class="px-6 py-2.5 rounded-lg border border-gray-300 bg-white text-charcoal text-xs font-semibold hover:border-charcoal transition-colors">
+          Load More Pieces
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dual-Track Publishing System -->
+  <section id="tracks" class="py-16 sm:py-20 bg-archival border-y border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="max-w-2xl mb-12">
+        <span class="text-xs font-bold uppercase tracking-widest text-teal block mb-2">How The Desk Works</span>
+        <h2 class="font-editorial text-3xl sm:text-4xl font-medium text-charcoal mb-3">Two Publishing Tracks, One Goal</h2>
+        <p class="text-sm sm:text-base text-gray-600">
+          Every submission receives light-touch editorial polish with your final sign-off—never rewriting your voice. Choose how your piece enters the world:
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Track 1: Public Archive -->
+        <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full bg-teal-light text-teal-dark text-xs font-bold">Track 01 · Fast-Track</span>
+              <span class="text-xs text-gray-500 font-medium">7–14 Days</span>
+            </div>
+            <h3 class="font-editorial text-2xl font-medium text-charcoal mb-3">The Public Archive</h3>
+            <p class="text-sm text-gray-600 leading-relaxed mb-6">
+              Ideal for ready-to-read poetry, personal reflections, and flash fiction. We publish your piece directly on NagozLibrary with a permanent URL and package your best lines into Instagram carousels and voiceover Reels.
+            </p>
+          </div>
+          <ul class="space-y-2 text-xs text-gray-700 border-t border-gray-100 pt-4">
+            <li class="flex items-center gap-2"><span class="text-teal font-bold">✓</span> Permanent resume-ready author credit</li>
+            <li class="flex items-center gap-2"><span class="text-teal font-bold">✓</span> Co-authored Instagram &amp; LinkedIn feature</li>
+            <li class="flex items-center gap-2"><span class="text-teal font-bold">✓</span> You retain 100% copyright</li>
+          </ul>
+        </div>
+
+        <!-- Track 2: External Pitch Desk -->
+        <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full bg-mustard-light text-mustard-dark text-xs font-bold">Track 02 · Agent Desk</span>
+              <span class="text-xs text-gray-500 font-medium">Private Hold</span>
+            </div>
+            <h3 class="font-editorial text-2xl font-medium text-charcoal mb-3">The External Pitch Desk</h3>
+            <p class="text-sm text-gray-600 leading-relaxed mb-6">
+              Built for standout long-form essays, campus journalism, and literary fiction. We hold your draft privately—protecting your <em>First Publication Rights</em>—while helping you refine and pitch it to established external journals.
+            </p>
+          </div>
+          <ul class="space-y-2 text-xs text-gray-700 border-t border-gray-100 pt-4">
+            <li class="flex items-center gap-2"><span class="text-mustard font-bold">✓</span> Protects First Publication Rights</li>
+            <li class="flex items-center gap-2"><span class="text-mustard font-bold">✓</span> 1-on-1 editorial polish &amp; pitch email drafting</li>
+            <li class="flex items-center gap-2"><span class="text-mustard font-bold">✓</span> Matched to open calls in India &amp; globally</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QR Access & App Install Section -->
+  <section id="qr-access" class="py-16 sm:py-20 bg-white border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <span class="text-xs font-bold uppercase tracking-widest text-teal block mb-2">Campus &amp; Mobile Access</span>
+        <h2 class="font-editorial text-3xl sm:text-4xl font-medium text-charcoal mb-3">Scan to Read or Submit</h2>
+        <p class="text-sm text-gray-600">
+          Share these QR codes at KIIT campus reading nights, study tables, or student clubs. Download high-resolution PNG cards ready for printing.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <!-- QR 1: Install App -->
+        <div class="p-6 sm:p-8 rounded-2xl bg-archival border border-gray-200 text-center flex flex-col items-center">
+          <span class="px-3 py-1 rounded-full bg-charcoal text-white text-[11px] font-semibold uppercase tracking-wider mb-4">App Access</span>
+          <h3 class="font-editorial text-2xl font-medium text-charcoal mb-1">Install NagozLibrary</h3>
+          <p class="text-xs text-gray-500 mb-6">Open on mobile &amp; add to your home screen</p>
+
+          <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+            <div id="qr-install" class="qr-box"></div>
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-2.5 w-full">
+            <button onclick="triggerInstall()" class="px-4 py-2 rounded-lg bg-charcoal text-white text-xs font-semibold hover:bg-obsidian transition-colors">
+              Install Now
+            </button>
+            <button onclick="downloadQrPng('qr-install', 'NagozLibrary-Install-QR.png', 'INSTALL NAGOZLIBRARY APP', 'Scan to read student poetry & essays')" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-charcoal text-xs font-semibold hover:border-charcoal transition-colors">
+              Download QR PNG
+            </button>
+          </div>
+        </div>
+
+        <!-- QR 2: Quick Submit -->
+        <div class="p-6 sm:p-8 rounded-2xl bg-archival border border-gray-200 text-center flex flex-col items-center">
+          <span class="px-3 py-1 rounded-full bg-teal text-white text-[11px] font-semibold uppercase tracking-wider mb-4">Writer Intake</span>
+          <h3 class="font-editorial text-2xl font-medium text-charcoal mb-1">Quick Draft Submission</h3>
+          <p class="text-xs text-gray-500 mb-6">Jumps straight to the manuscript intake form</p>
+
+          <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+            <div id="qr-submit" class="qr-box"></div>
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-2.5 w-full">
+            <a href="#submit" class="px-4 py-2 rounded-lg bg-teal text-white text-xs font-semibold hover:bg-teal-dark transition-colors">
+              Open Form
             </a>
-
-            <!-- Desktop Navigation -->
-            <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-inkMuted">
-                <a href="#shelf" class="hover:text-tealAccent transition-colors">The Shelf</a>
-                <a href="#qr-access" class="hover:text-tealAccent transition-colors">App & QR</a>
-                <a href="#tracks" class="hover:text-tealAccent transition-colors">Publishing Tracks</a>
-                <button type="button" onclick="openGuidelinesModal()" class="hover:text-tealAccent transition-colors">Guidelines</button>
-                <a href="#submit" class="px-4 py-2.5 rounded-lg bg-obsidian text-paper hover:bg-tealAccent transition-colors shadow-sm">
-                    Submit a Manuscript
-                </a>
-            </nav>
-
-            <!-- Mobile CTA Button -->
-            <div class="flex md:hidden items-center gap-2">
-                <a href="#qr-access" class="px-3 py-2 rounded-lg bg-paperDark border border-borderWarm text-ink text-xs font-semibold">
-                    QR / App
-                </a>
-                <a href="#submit" class="px-3.5 py-2 rounded-lg bg-tealAccent text-paper text-xs font-semibold shadow-sm">
-                    Submit
-                </a>
-            </div>
+            <button onclick="downloadQrPng('qr-submit', 'NagozLibrary-Submit-QR.png', 'SUBMIT YOUR WRITING', 'Scan to publish on NagozLibrary')" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-charcoal text-xs font-semibold hover:border-charcoal transition-colors">
+              Download QR PNG
+            </button>
+          </div>
         </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="relative pt-12 pb-16 sm:pt-20 sm:pb-24 bg-paper border-b border-borderWarm overflow-hidden">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-3xl">
-                <!-- Eyebrow Badge -->
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-paperDark border border-borderStrong text-xs font-medium text-inkMuted mb-6">
-                    <span class="w-2 h-2 rounded-full bg-mustard"></span>
-                    <span>Rooted at KIIT University • Open to Student Writers Globally</span>
-                </div>
-
-                <!-- Main Serif Headline -->
-                <h1 class="font-serif text-4xl sm:text-6xl lg:text-[4.25rem] font-normal tracking-tight text-obsidian leading-[1.08] mb-6">
-                    Great student writing shouldn’t die in a <span class="italic text-tealAccent">Notes app.</span>
-                </h1>
-
-                <!-- Lead Paragraph -->
-                <p class="text-base sm:text-lg text-inkMuted leading-relaxed mb-8 max-w-2xl">
-                    Welcome to <strong class="text-obsidian font-semibold">NagozLibrary</strong>—a student-run literary collective, editorial desk, and digital archive. You focus on the craft; your <span class="underline decoration-mustard decoration-2 underline-offset-4">Student Librarian</span> handles light-touch editing, permanent archiving, social media storytelling, and pitching standout works to literary journals.
-                </p>
-
-                <!-- Primary CTAs -->
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4">
-                    <a href="#shelf" class="px-6 py-3.5 rounded-xl bg-tealAccent hover:bg-tealHover text-paper font-medium text-sm sm:text-base text-center shadow-sm transition-all flex items-center justify-center gap-2">
-                        <span>Explore the Shelf</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </a>
-                    <a href="#submit" class="px-6 py-3.5 rounded-xl bg-obsidian hover:bg-inkMuted text-paper font-medium text-sm sm:text-base text-center transition-all flex items-center justify-center gap-2">
-                        <span>Submit a Manuscript</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </a>
-                </div>
-
-                <!-- Micro Stats Bar -->
-                <div class="grid grid-cols-3 gap-4 sm:gap-8 mt-12 pt-8 border-t border-borderWarm max-w-xl">
-                    <div>
-                        <p class="font-serif text-2xl sm:text-3xl font-medium text-obsidian">100%</p>
-                        <p class="text-xs text-inkMuted mt-0.5">Author Copyright Retained</p>
-                    </div>
-                    <div>
-                        <p class="font-serif text-2xl sm:text-3xl font-medium text-obsidian">2 Tracks</p>
-                        <p class="text-xs text-inkMuted mt-0.5">Archive or External Pitch</p>
-                    </div>
-                    <div>
-                        <p class="font-serif text-2xl sm:text-3xl font-medium text-obsidian">$0 Fee</p>
-                        <p class="text-xs text-inkMuted mt-0.5">Always Free for Students</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Library Access & Quick Actions QR Code Section -->
-    <section id="qr-access" class="py-14 sm:py-18 bg-paperDark border-b border-borderWarm">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-                <div>
-                    <span class="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em] text-tealAccent font-semibold">
-                        <span class="w-1.5 h-1.5 rounded-full bg-mustard"></span>
-                        Campus & Mobile Access
-                    </span>
-                    <h2 class="font-serif text-2xl sm:text-3xl font-normal text-obsidian mt-1.5">Library Access & Quick Actions</h2>
-                </div>
-                <p class="text-xs sm:text-sm text-inkMuted max-w-md">
-                    Install NagozLibrary on your phone for offline reading or download print-ready QR cards for KIIT library noticeboards and campus cafés.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- QR Card 1: Install NagozLibrary App -->
-                <div class="p-6 rounded-2xl bg-paper border-2 border-tealAccent/30 hover:border-tealAccent shadow-sm transition-all flex flex-col sm:flex-row items-center gap-6">
-                    <!-- Dynamic QR Code Container -->
-                    <div class="shrink-0 p-3 rounded-xl bg-white border border-borderStrong shadow-inner flex flex-col items-center">
-                        <div id="qr-install-app" class="w-32 h-32 flex items-center justify-center"></div>
-                        <span class="text-[10px] font-mono uppercase tracking-widest text-inkMuted mt-2">PWA • Web App</span>
-                    </div>
-
-                    <!-- Card Content & Actions -->
-                    <div class="flex-1 text-center sm:text-left">
-                        <span class="inline-block px-2.5 py-0.5 rounded-md bg-tealLight text-tealHover text-[11px] font-semibold mb-2">
-                            Pocket Archive
-                        </span>
-                        <h3 class="font-serif text-xl sm:text-2xl font-normal text-obsidian mb-1.5">Install NagozLibrary App</h3>
-                        <p class="text-xs sm:text-sm text-inkMuted leading-relaxed mb-4">
-                            Scan with your phone camera or tap below to add NagozLibrary directly to your iOS or Android home screen.
-                        </p>
-                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                            <button type="button" id="install-pwa-btn" onclick="triggerPwaInstall()" class="px-4 py-2.5 rounded-xl bg-tealAccent hover:bg-tealHover text-paper text-xs font-semibold shadow-sm transition-colors inline-flex items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                <span>Install App</span>
-                            </button>
-                            <button type="button" onclick="downloadQrPng('qr-install-app', 'NagozLibrary-Install-App-QR.png')" class="px-3.5 py-2.5 rounded-xl bg-paperDark hover:bg-borderWarm text-ink border border-borderStrong text-xs font-medium transition-colors">
-                                Download QR PNG
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- QR Card 2: Instant Manuscript Submission -->
-                <div class="p-6 rounded-2xl bg-paper border-2 border-mustard/40 hover:border-mustard shadow-sm transition-all flex flex-col sm:flex-row items-center gap-6">
-                    <!-- Dynamic QR Code Container -->
-                    <div class="shrink-0 p-3 rounded-xl bg-white border border-borderStrong shadow-inner flex flex-col items-center">
-                        <div id="qr-submit-draft" class="w-32 h-32 flex items-center justify-center"></div>
-                        <span class="text-[10px] font-mono uppercase tracking-widest text-inkMuted mt-2">Direct Intake</span>
-                    </div>
-
-                    <!-- Card Content & Actions -->
-                    <div class="flex-1 text-center sm:text-left">
-                        <span class="inline-block px-2.5 py-0.5 rounded-md bg-mustardLight text-mustard text-[11px] font-semibold mb-2">
-                            Scan to Submit Your Draft
-                        </span>
-                        <h3 class="font-serif text-xl sm:text-2xl font-normal text-obsidian mb-1.5">Instant Manuscript Submission</h3>
-                        <p class="text-xs sm:text-sm text-inkMuted leading-relaxed mb-4">
-                            Got drafts rotting in your Notes app? Scan to jump straight to the submission desk—or download this QR for campus posters.
-                        </p>
-                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                            <button type="button" onclick="downloadQrPng('qr-submit-draft', 'NagozLibrary-Submit-Poster-QR.png')" class="px-4 py-2.5 rounded-xl bg-obsidian hover:bg-inkMuted text-paper text-xs font-semibold shadow-sm transition-colors inline-flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-mustardBright" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                                <span>Download QR for Posters</span>
-                            </button>
-                            <a href="#submit" class="px-3.5 py-2.5 rounded-xl bg-paperDark hover:bg-borderWarm text-ink border border-borderStrong text-xs font-medium transition-colors">
-                                Open Form →
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Interactive Digital Library / Archive ("The Shelf") -->
-    <section id="shelf" class="py-16 sm:py-24 bg-paper border-b border-borderWarm">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Section Header -->
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-                <div>
-                    <div class="inline-flex items-center gap-2">
-                        <span class="text-xs uppercase tracking-[0.2em] text-tealAccent font-semibold">Curated Catalog • Issue 01</span>
-                        <span class="px-2 py-0.5 rounded bg-mustardLight text-mustard text-[10px] font-bold uppercase tracking-wider">Editor's Picks</span>
-                    </div>
-                    <h2 class="font-serif text-3xl sm:text-4xl font-normal text-obsidian mt-2">The Digital Shelf</h2>
-                    <p class="text-sm sm:text-base text-inkMuted mt-2 max-w-xl">
-                        Browse vetted poetry, personal essays, and fiction from campus rooms in Bhubaneswar and dorms across the globe. Click any piece to read or copy its social card excerpt.
-                    </p>
-                </div>
-
-                <!-- Search Input -->
-                <div class="relative w-full md:w-72">
-                    <input 
-                        type="text" 
-                        id="shelf-search" 
-                        placeholder="Search title, author, or theme..." 
-                        class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-paperDark border border-borderStrong text-sm text-ink placeholder-inkMuted focus:outline-none focus:bg-white focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-all"
-                    >
-                    <svg class="w-4 h-4 text-inkMuted absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Filter Controls Bar -->
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-8 border-b border-borderWarm">
-                <!-- Genre Filter Tabs -->
-                <div class="flex flex-wrap items-center gap-2" id="genre-filters">
-                    <button type="button" data-genre="All" class="genre-btn active px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium bg-tealAccent text-paper transition-colors">All Genres</button>
-                    <button type="button" data-genre="Poetry" class="genre-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium bg-paperDark text-inkMuted hover:text-ink border border-borderWarm transition-colors">Poetry</button>
-                    <button type="button" data-genre="Personal Essays" class="genre-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium bg-paperDark text-inkMuted hover:text-ink border border-borderWarm transition-colors">Personal Essays</button>
-                    <button type="button" data-genre="Short Fiction" class="genre-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium bg-paperDark text-inkMuted hover:text-ink border border-borderWarm transition-colors">Short Fiction</button>
-                    <button type="button" data-genre="Cultural Commentary" class="genre-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium bg-paperDark text-inkMuted hover:text-ink border border-borderWarm transition-colors">Cultural Commentary</button>
-                </div>
-
-                <!-- Affiliation Segmented Control -->
-                <div class="inline-flex items-center p-1 rounded-xl bg-paperDark border border-borderWarm self-start" id="affiliation-filters">
-                    <button type="button" data-affiliation="All" class="affil-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-obsidian text-paper shadow-sm transition-all">All Writers</button>
-                    <button type="button" data-affiliation="KIIT University" class="affil-btn px-3 py-1.5 rounded-lg text-xs font-medium text-inkMuted hover:text-ink transition-all">KIIT University</button>
-                    <button type="button" data-affiliation="Global Student" class="affil-btn px-3 py-1.5 rounded-lg text-xs font-medium text-inkMuted hover:text-ink transition-all">Global Students</button>
-                </div>
-            </div>
-
-            <!-- Articles Grid -->
-            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                <!-- Populated dynamically via JavaScript -->
-            </div>
-
-            <!-- Empty Search State -->
-            <div id="empty-shelf" class="hidden text-center py-16 px-4 rounded-2xl bg-paperDark border border-dashed border-borderStrong mt-8">
-                <p class="font-serif text-xl text-obsidian mb-2">No manuscripts match that filter.</p>
-                <p class="text-sm text-inkMuted mb-4">Try clearing your search or switching back to all genres.</p>
-                <button type="button" onclick="resetFilters()" class="px-4 py-2 rounded-lg bg-tealAccent text-paper text-xs font-medium hover:bg-tealHover transition-colors">
-                    Reset All Filters
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Dual-Track Explainer Section -->
-    <section id="tracks" class="py-16 sm:py-24 bg-paperDark border-b border-borderWarm">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-2xl mb-12">
-                <span class="text-xs uppercase tracking-[0.2em] text-tealAccent font-semibold">How Your Student Librarian Works</span>
-                <h2 class="font-serif text-3xl sm:text-4xl font-normal text-obsidian mt-2">Two Tracks. Total Rights Protection.</h2>
-                <p class="text-sm sm:text-base text-inkMuted mt-3 leading-relaxed">
-                    Many literary journals reject pieces that have already appeared online. That’s why NagozLibrary lets you choose how your draft is handled before a single word goes public.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Track 1: The Public Archive -->
-                <div class="p-6 sm:p-8 rounded-2xl bg-paper border border-borderStrong shadow-sm flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between gap-4 mb-6">
-                            <span class="px-3 py-1 rounded-full bg-tealLight text-tealHover text-xs font-semibold">Track 01 • Fast-Track (7–14 Days)</span>
-                            <svg class="w-6 h-6 text-tealAccent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                        </div>
-                        <h3 class="font-serif text-2xl sm:text-3xl font-normal text-obsidian mb-3">The Public Archive</h3>
-                        <p class="text-sm text-inkMuted leading-relaxed mb-6">
-                            Designed for poetry, campus reflections, and short prose ready to be read right now. We lightly polish grammar and formatting, publish your work on NagozLibrary with a permanent Author Page, and transform your best lines into visual Instagram carousels and voiceover Reels.
-                        </p>
-                        <ul class="space-y-3 text-sm text-ink mb-8">
-                            <li class="flex items-start gap-2.5">
-                                <span class="text-tealAccent font-bold mt-0.5">✓</span>
-                                <span><strong>Light-Touch Editing:</strong> Zero voice rewriting; author sign-off required before publishing.</span>
-                            </li>
-                            <li class="flex items-start gap-2.5">
-                                <span class="text-tealAccent font-bold mt-0.5">✓</span>
-                                <span><strong>Social Media Amplification:</strong> Custom serif quote cards & Instagram Collab posts.</span>
-                            </li>
-                            <li class="flex items-start gap-2.5">
-                                <span class="text-tealAccent font-bold mt-0.5">✓</span>
-                                <span><strong>Portfolio Ready:</strong> Permanent URL to link on LinkedIn, resumes, or grad applications.</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <a href="#submit" onclick="preselectTrack('Public Archive')" class="w-full py-3 px-4 rounded-xl border border-obsidian text-obsidian hover:bg-obsidian hover:text-paper text-sm font-medium text-center transition-colors">
-                        Submit to Public Archive →
-                    </a>
-                </div>
-
-                <!-- Track 2: The External Pitch Desk -->
-                <div class="p-6 sm:p-8 rounded-2xl bg-obsidian text-paper border border-obsidian shadow-sm flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between gap-4 mb-6">
-                            <span class="px-3 py-1 rounded-full bg-mustard/20 text-mustardBright border border-mustard/40 text-xs font-semibold">Track 02 • Literary Scout</span>
-                            <svg class="w-6 h-6 text-mustardBright" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                        </div>
-                        <h3 class="font-serif text-2xl sm:text-3xl font-normal text-paper mb-3">The External Pitch Desk</h3>
-                        <p class="text-sm text-gray-300 leading-relaxed mb-6">
-                            Designed for ambitious personal essays, investigative campus journalism, and polished fiction. We keep your manuscript <strong class="text-white">strictly unpublished</strong> to protect your First Publication Rights while helping you refine it and pitch it to established literary magazines.
-                        </p>
-                        <ul class="space-y-3 text-sm text-gray-200 mb-8">
-                            <li class="flex items-start gap-2.5">
-                                <span class="text-mustardBright font-bold mt-0.5">✓</span>
-                                <span><strong>First Rights Protected:</strong> Kept private in our editorial vault until placed externally.</span>
-                            </li>
-                            <li class="flex items-start gap-2.5">
-                                <span class="text-mustardBright font-bold mt-0.5">✓</span>
-                                <span><strong>Pitch & Cover Letter Prep:</strong> 1-on-1 structural feedback and editor pitch drafting.</span>
-                            </li>
-                            <li class="flex items-start gap-2.5">
-                                <span class="text-mustardBright font-bold mt-0.5">✓</span>
-                                <span><strong>Curated Journal Matching:</strong> Matched to open calls across Indian & international journals.</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <a href="#submit" onclick="preselectTrack('External Pitch Desk')" class="w-full py-3 px-4 rounded-xl bg-tealAccent hover:bg-tealHover text-paper text-sm font-medium text-center transition-colors">
-                        Submit to External Pitch Desk →
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Submission Form Section (Netlify Forms Ready) -->
-    <section id="submit" class="py-16 sm:py-24 bg-paper">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-2xl mx-auto mb-12">
-                <span class="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em] text-tealAccent font-semibold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-mustard"></span>
-                    Open Submissions • Rolling Basis
-                </span>
-                <h2 class="font-serif text-3xl sm:text-4xl font-normal text-obsidian mt-2">Send Your Draft to the Librarian</h2>
-                <p class="text-sm sm:text-base text-inkMuted mt-3">
-                    Share a Google Doc link with <strong>"Anyone with the link can comment"</strong> enabled. We respond to every submission within 7 days.
-                </p>
-            </div>
-
-            <!-- Form Container Card -->
-            <div class="bg-paperDark rounded-2xl border border-borderStrong shadow-sm p-6 sm:p-10">
-                
-                <!-- Netlify Form -->
-                <form 
-                    id="submission-form" 
-                    name="nagoz-submissions" 
-                    method="POST" 
-                    data-netlify="true" 
-                    netlify-honeypot="bot-field"
-                    class="space-y-6"
-                >
-                    <!-- Required Hidden Input for Netlify Forms -->
-                    <input type="hidden" name="form-name" value="nagoz-submissions" />
-                    <p class="hidden">
-                        <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
-                    </p>
-
-                    <!-- Row 1: Name & Contact -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label for="writer-name" class="block text-xs font-semibold uppercase tracking-wider text-obsidian mb-2">
-                                Full Name or Pen Name <span class="text-tealAccent">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="writer-name" 
-                                name="writer_name" 
-                                required 
-                                placeholder="e.g., Ananya Sen"
-                                class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                            >
-                        </div>
-                        <div>
-                            <label for="writer-contact" class="block text-xs font-semibold uppercase tracking-wider text-obsidian mb-2">
-                                Email & Instagram / LinkedIn <span class="text-tealAccent">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="writer-contact" 
-                                name="writer_contact" 
-                                required 
-                                placeholder="ananya@email.com | @ananyawrites"
-                                class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                            >
-                        </div>
-                    </div>
-
-                    <!-- Row 2: Affiliation & Track -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label for="writer-affiliation" class="block text-xs font-semibold uppercase tracking-wider text-obsidian mb-2">
-                                Student Affiliation <span class="text-tealAccent">*</span>
-                            </label>
-                            <select 
-                                id="writer-affiliation" 
-                                name="affiliation" 
-                                required
-                                class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                            >
-                                <option value="KIIT University">KIIT University (Bhubaneswar)</option>
-                                <option value="Global Student">Global Student (Other University / School)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="submission-track" class="block text-xs font-semibold uppercase tracking-wider text-obsidian mb-2">
-                                Submission Track <span class="text-tealAccent">*</span>
-                            </label>
-                            <select 
-                                id="submission-track" 
-                                name="track" 
-                                required
-                                class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                            >
-                                <option value="Public Archive">Public Archive (Publish & Social Amplify)</option>
-                                <option value="External Pitch Desk">External Pitch Desk (Keep Private & Pitch)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Conditional University/Country Field for Global Students -->
-                    <div id="school-detail-wrapper" class="hidden">
-                        <label for="school-name" class="block text-xs font-semibold uppercase tracking-wider text-obsidian mb-2">
-                            University / School & Country <span class="text-tealAccent">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            id="school-name" 
-                            name="school_location" 
-                            placeholder="e.g., University of Toronto, Canada"
-                            class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                        >
-                    </div>
-
-                    <!-- Row 3: Genre & Title -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div>
-                            <label for="piece-genre" class="block text-xs font-semibold uppercase tracking-wider text-obsidian mb-2">
-                                Genre <span class="text-tealAccent">*</span>
-                            </label>
-                            <select 
-                                id="piece-genre" 
-                                name="genre" 
-                                required
-                                class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                            >
-                                <option value="Poetry">Poetry</option>
-                                <option value="Personal Essays">Personal Essay</option>
-                                <option value="Short Fiction">Short Fiction</option>
-                                <option value="Cultural Commentary">Cultural Commentary</option>
-                            </select>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label for="piece-title" class="block text-xs font-semibold uppercase tracking-wider text-obsidian mb-2">
-                                Manuscript Title <span class="text-tealAccent">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="piece-title" 
-                                name="title" 
-                                required 
-                                placeholder="e.g., Notes from Campus 6 at Midnight"
-                                class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                            >
-                        </div>
-                    </div>
-
-                    <!-- Google Doc Link -->
-                    <div>
-                        <label for="doc-link" class="block text-xs font-semibold uppercase tracking-wider text-obsidian mb-2">
-                            Google Doc Link (Set to "Anyone with link can comment") <span class="text-tealAccent">*</span>
-                        </label>
-                        <input 
-                            type="url" 
-                            id="doc-link" 
-                            name="google_doc_link" 
-                            required 
-                            placeholder="https://docs.google.com/document/d/..."
-                            class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                        >
-                    </div>
-
-                    <!-- Author Bio -->
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <label for="author-bio" class="block text-xs font-semibold uppercase tracking-wider text-obsidian">
-                                Short Third-Person Author Bio <span class="text-tealAccent">*</span>
-                            </label>
-                            <span class="text-xs text-inkMuted">Max 40 words</span>
-                        </div>
-                        <textarea 
-                            id="author-bio" 
-                            name="author_bio" 
-                            rows="2" 
-                            required 
-                            placeholder="e.g., Rohan is a third-year Electronics student at KIIT who writes about monsoon evenings, hostel tea stalls, and memory."
-                            class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong text-sm text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                        ></textarea>
-                    </div>
-
-                    <!-- Favorite 2-4 Line Social Hook -->
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <label for="social-hook" class="block text-xs font-semibold uppercase tracking-wider text-obsidian">
-                                Favorite 2–4 Line Excerpt (For Instagram / LinkedIn Card) <span class="text-tealAccent">*</span>
-                            </label>
-                            <span class="text-xs text-inkMuted">Your sharpest lines</span>
-                        </div>
-                        <textarea 
-                            id="social-hook" 
-                            name="social_hook" 
-                            rows="3" 
-                            required 
-                            placeholder="Paste the 2–4 lines from your piece that hit the hardest..."
-                            class="w-full px-4 py-3 rounded-xl bg-white border border-borderStrong font-serif text-base text-ink focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition-colors"
-                        ></textarea>
-                    </div>
-
-                    <!-- Mandatory Rights & Originality Consent Checkbox -->
-                    <div class="p-4 rounded-xl bg-white border border-borderStrong">
-                        <label class="flex items-start gap-3 cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                id="rights-consent" 
-                                name="rights_consent" 
-                                required 
-                                class="mt-1 w-4 h-4 rounded border-borderStrong text-tealAccent focus:ring-tealAccent"
-                            >
-                            <span class="text-xs sm:text-sm text-inkMuted leading-relaxed">
-                                <strong class="text-obsidian">Rights & Originality Confirmation:</strong> I confirm this is my original, unpublished work. If submitting to the <em>Public Archive</em>, I grant NagozLibrary non-exclusive rights to lightly edit, publish, excerpt, and promote this piece across social media with full credit to me. I retain 100% copyright.
-                            </span>
-                        </label>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button 
-                        type="submit" 
-                        id="submit-btn"
-                        class="w-full py-4 px-6 rounded-xl bg-tealAccent hover:bg-tealHover text-paper font-semibold text-sm sm:text-base shadow-sm transition-all flex items-center justify-center gap-2"
-                    >
-                        <span>Submit Manuscript to NagozLibrary</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </button>
-                </form>
-
-                <!-- Client-Side Submission Confirmation State -->
-                <div id="submission-success" class="hidden text-center py-8 px-4">
-                    <div class="w-14 h-14 rounded-full bg-tealLight text-tealHover flex items-center justify-center mx-auto mb-5">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    </div>
-                    <span class="text-xs uppercase tracking-[0.2em] text-tealAccent font-semibold">Logged in the Catalog</span>
-                    <h3 class="font-serif text-3xl font-normal text-obsidian mt-2 mb-3">Manuscript Received</h3>
-                    <p id="success-summary" class="text-sm sm:text-base text-inkMuted max-w-lg mx-auto leading-relaxed mb-8">
-                        Thank you! Your draft has been logged on the Student Librarian’s desk. We’ll review your Google Doc and reach out within 7 days with light-touch notes or pitch next steps.
-                    </p>
-                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                        <button type="button" onclick="resetSubmissionForm()" class="px-5 py-2.5 rounded-xl bg-white border border-borderStrong hover:bg-borderWarm text-ink text-sm font-medium transition-colors">
-                            Submit Another Piece
-                        </button>
-                        <a href="#shelf" class="px-5 py-2.5 rounded-xl bg-obsidian text-paper hover:bg-tealAccent text-sm font-medium transition-colors">
-                            Return to The Shelf
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-obsidian text-gray-300 py-14 border-t border-gray-800">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 pb-10 border-b border-gray-800">
-                <!-- Col 1: Brand -->
-                <div>
-                    <div class="flex items-center gap-2.5 mb-4">
-                        <div class="w-8 h-8 rounded-lg bg-tealAccent text-paper flex items-center justify-center font-serif text-lg font-semibold">N</div>
-                        <span class="font-serif text-xl font-medium text-paper">NagozLibrary</span>
-                    </div>
-                    <p class="text-sm text-gray-400 leading-relaxed max-w-xs">
-                        A student-run literary archive, editorial desk, and micro-press rescuing student drafts from obscurity—rooted at KIIT University and open worldwide.
-                    </p>
-                </div>
-
-                <!-- Col 2: Quick Links -->
-                <div>
-                    <h4 class="text-xs font-semibold uppercase tracking-wider text-paper mb-4">The Press</h4>
-                    <ul class="space-y-2.5 text-sm">
-                        <li><a href="#shelf" class="hover:text-tealLight transition-colors">Explore The Digital Shelf</a></li>
-                        <li><a href="#qr-access" class="hover:text-tealLight transition-colors">Install App & Print QR Codes</a></li>
-                        <li><a href="#tracks" class="hover:text-tealLight transition-colors">Public Archive vs. Pitch Desk</a></li>
-                        <li><button type="button" onclick="openGuidelinesModal()" class="hover:text-tealLight transition-colors">Submission Guidelines & Manifesto</button></li>
-                        <li><a href="#submit" class="hover:text-tealLight transition-colors">Submit a Manuscript</a></li>
-                    </ul>
-                </div>
-
-                <!-- Col 3: Social Channels -->
-                <div>
-                    <h4 class="text-xs font-semibold uppercase tracking-wider text-paper mb-4">Follow the Archive</h4>
-                    <p class="text-sm text-gray-400 mb-4">Daily poetry carousels, voiceover Reels, and open-call alerts.</p>
-                    <div class="flex flex-wrap gap-2.5">
-                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-lg bg-gray-900 hover:bg-tealAccent text-xs font-medium text-paper border border-gray-800 transition-colors">
-                            Instagram
-                        </a>
-                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-lg bg-gray-900 hover:bg-tealAccent text-xs font-medium text-paper border border-gray-800 transition-colors">
-                            LinkedIn
-                        </a>
-                        <a href="https://substack.com" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-lg bg-gray-900 hover:bg-tealAccent text-xs font-medium text-paper border border-gray-800 transition-colors">
-                            Substack
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-                <p>© 2026 NagozLibrary Student Collective. All authors retain 100% copyright of their work.</p>
-                <p>Bhubaneswar • Global Student Network</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Full-Article Reader Modal -->
-    <div id="reader-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-obsidian/75 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
-        <div class="relative w-full max-w-2xl bg-paper rounded-2xl border border-borderStrong shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
-            <!-- Modal Top Bar -->
-            <div class="px-6 py-4 bg-paperDark border-b border-borderWarm flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span id="modal-genre" class="px-2.5 py-1 rounded-md bg-tealLight text-tealHover text-xs font-semibold">Poetry</span>
-                    <span id="modal-affiliation" class="px-2.5 py-1 rounded-md bg-white border border-borderStrong text-inkMuted text-xs font-medium">KIIT University</span>
-                </div>
-                <button type="button" onclick="closeReaderModal()" class="p-2 rounded-lg text-inkMuted hover:text-obsidian hover:bg-borderWarm transition-colors" aria-label="Close reader">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <!-- Modal Scrollable Article Content -->
-            <div class="p-6 sm:p-10 overflow-y-auto space-y-6">
-                <div>
-                    <h2 id="modal-title" class="font-serif text-3xl sm:text-4xl font-normal text-obsidian leading-tight">Piece Title</h2>
-                    <p id="modal-meta" class="text-sm text-inkMuted mt-2">By Author Name • 3 min read</p>
-                </div>
-
-                <!-- Highlighted Social Excerpt Card -->
-                <div class="p-5 rounded-xl bg-paperDark border-l-4 border-mustard">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[11px] uppercase tracking-wider font-semibold text-mustard">Featured Social Excerpt</span>
-                        <button type="button" id="copy-excerpt-btn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-tealAccent hover:text-paper text-obsidian border border-borderStrong text-xs font-medium shadow-sm transition-colors">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                            <span>Copy Social Excerpt</span>
-                        </button>
-                    </div>
-                    <blockquote id="modal-excerpt" class="font-serif italic text-base sm:text-lg text-obsidian leading-relaxed whitespace-pre-line"></blockquote>
-                </div>
-
-                <!-- Full Piece Body -->
-                <div id="modal-body" class="font-serif text-base sm:text-lg text-ink leading-relaxed space-y-4 whitespace-pre-line">
-                </div>
-
-                <!-- Author Bio Box -->
-                <div class="pt-6 border-t border-borderWarm flex items-start gap-4">
-                    <div id="modal-avatar" class="w-11 h-11 rounded-full bg-obsidian text-paper border border-tealAccent font-serif text-lg flex items-center justify-center shrink-0">
-                        A
-                    </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-wider font-semibold text-inkMuted">About the Author</p>
-                        <p id="modal-bio" class="text-sm text-ink mt-1 leading-relaxed"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+  </section>
 
-    <!-- PWA Install Instructions Modal (iOS / Android / Desktop Fallback) -->
-    <div id="pwa-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-obsidian/75 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
-        <div class="relative w-full max-w-md bg-paper rounded-2xl border border-borderStrong shadow-2xl overflow-hidden my-auto">
-            <div class="px-6 py-4 bg-paperDark border-b border-borderWarm flex items-center justify-between">
-                <span class="text-xs uppercase tracking-[0.2em] text-tealAccent font-semibold">Install Web App</span>
-                <button type="button" onclick="closePwaModal()" class="p-2 rounded-lg text-inkMuted hover:text-obsidian hover:bg-borderWarm transition-colors" aria-label="Close install instructions">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <div class="p-6 space-y-4 text-sm text-inkMuted leading-relaxed">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-obsidian text-paper border border-tealAccent flex items-center justify-center font-serif text-2xl font-semibold shrink-0">N</div>
-                    <div>
-                        <h3 class="font-serif text-xl text-obsidian leading-tight">Add NagozLibrary to Home Screen</h3>
-                        <p class="text-xs text-inkMuted">Instant one-tap access from your phone</p>
-                    </div>
-                </div>
-                <div class="p-4 rounded-xl bg-paperDark border border-borderWarm space-y-2.5 text-xs">
-                    <p><strong class="text-obsidian">iPhone / iPad (Safari):</strong> Tap the <span class="px-1.5 py-0.5 rounded bg-white border border-borderStrong font-semibold text-obsidian">Share</span> icon at the bottom of Safari, scroll down, and tap <strong class="text-tealHover">"Add to Home Screen"</strong>.</p>
-                    <p><strong class="text-obsidian">Android (Chrome):</strong> Tap the <span class="px-1.5 py-0.5 rounded bg-white border border-borderStrong font-semibold text-obsidian">⋮ Menu</span> in the top-right corner and select <strong class="text-tealHover">"Install app"</strong> or <strong class="text-tealHover">"Add to Home screen"</strong>.</p>
-                </div>
-                <button type="button" onclick="closePwaModal()" class="w-full py-2.5 rounded-xl bg-obsidian text-paper hover:bg-tealAccent text-xs font-semibold transition-colors">
-                    Got It
-                </button>
-            </div>
+  <!-- Manuscript Submission Form (Netlify Forms Ready) -->
+  <section id="submit" class="py-16 sm:py-24 bg-archival">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="mb-10">
+        <span class="text-xs font-bold uppercase tracking-widest text-teal block mb-2">Editorial Intake</span>
+        <h2 class="font-editorial text-3xl sm:text-4xl font-medium text-charcoal mb-3">Submit to NagozLibrary</h2>
+        <p class="text-sm text-gray-600">
+          Open to KIIT University students and student writers worldwide. Paste a Google Doc link (set to <em>"Anyone with the link can comment"</em>) or paste your draft directly below.
+        </p>
+      </div>
+
+      <form
+        name="nagoz-submissions"
+        method="POST"
+        data-netlify="true"
+        netlify-honeypot="bot-field"
+        id="submission-form"
+        class="bg-white p-6 sm:p-10 rounded-2xl border border-gray-200 shadow-sm space-y-6"
+      >
+        <input type="hidden" name="form-name" value="nagoz-submissions" />
+        <p class="hidden">
+          <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Full Name or Pen Name *</label>
+            <input type="text" name="author_name" required placeholder="e.g., Aarav Sharma" class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Email Address *</label>
+            <input type="email" name="email" required placeholder="you@university.edu" class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal" />
+          </div>
         </div>
-    </div>
 
-    <!-- Submission Guidelines & Manifesto Modal -->
-    <div id="guidelines-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-obsidian/75 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
-        <div class="relative w-full max-w-2xl bg-paper rounded-2xl border border-borderStrong shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
-            <div class="px-6 py-4 bg-paperDark border-b border-borderWarm flex items-center justify-between">
-                <span class="text-xs uppercase tracking-[0.2em] text-tealAccent font-semibold">Editorial Charter</span>
-                <button type="button" onclick="closeGuidelinesModal()" class="p-2 rounded-lg text-inkMuted hover:text-obsidian hover:bg-borderWarm transition-colors" aria-label="Close guidelines">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <div class="p-6 sm:p-8 overflow-y-auto space-y-6 text-sm text-inkMuted leading-relaxed">
-                <div>
-                    <h3 class="font-serif text-2xl text-obsidian mb-2">The NagozLibrary Manifesto</h3>
-                    <p>
-                        Most student writers write in isolation—filling hostel notebooks and phone Notes apps without ever seeing their words formatted, edited, or read beyond a close friend group. NagozLibrary bridges that gap. Acting as your <strong class="text-obsidian">Student Librarian</strong>, we curate, lightly edit, archive, and amplify student voices from KIIT University and campuses worldwide.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="p-4 rounded-xl bg-paperDark border border-borderWarm">
-                        <h4 class="font-semibold text-obsidian mb-1">Word Count Guidelines</h4>
-                        <ul class="space-y-1 text-xs">
-                            <li>• <strong>Poetry:</strong> Up to 3 poems (max 60 lines each)</li>
-                            <li>• <strong>Personal Essays:</strong> 600 – 1,800 words</li>
-                            <li>• <strong>Short Fiction:</strong> 300 – 2,000 words</li>
-                            <li>• <strong>Cultural Commentary:</strong> 500 – 1,500 words</li>
-                        </ul>
-                    </div>
-                    <div class="p-4 rounded-xl bg-paperDark border border-borderWarm">
-                        <h4 class="font-semibold text-obsidian mb-1">Light-Touch Edit Rule</h4>
-                        <p class="text-xs">
-                            We polish punctuation, line breaks, and clarity—never your distinct voice. Every edit is shared via Google Doc comments for your explicit approval prior to publication.
-                        </p>
-                    </div>
-                </div>
-
-                <div>
-                    <h4 class="font-semibold text-obsidian mb-1">Zero Fees & Full Copyright</h4>
-                    <p>
-                        NagozLibrary never charges submission or reading fees. Writers retain 100% copyright and may republish their pieces in print anthologies, personal books, or external journals at any time.
-                    </p>
-                </div>
-
-                <div class="pt-4 border-t border-borderWarm flex justify-end">
-                    <a href="#submit" onclick="closeGuidelinesModal()" class="px-5 py-2.5 rounded-xl bg-tealAccent text-paper font-medium hover:bg-tealHover transition-colors">
-                        Ready to Submit →
-                    </a>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Instagram / Social Handle</label>
+            <input type="text" name="social_handle" placeholder="@yourhandle (for collab tags)" class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Student Affiliation *</label>
+            <select name="affiliation" required class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-teal">
+              <option value="KIIT University">KIIT University, Bhubaneswar</option>
+              <option value="Global Student">Global / Other University Student</option>
+            </select>
+          </div>
         </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">University &amp; Country *</label>
+            <input type="text" name="school_location" required placeholder="e.g., KIIT University, India" class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Publishing Track *</label>
+            <select name="track" required class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-teal">
+              <option value="Public Archive">Track 01: The Public Archive (Publish &amp; Promote)</option>
+              <option value="External Pitch Desk">Track 02: External Pitch Desk (Hold &amp; Pitch)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Genre *</label>
+            <select name="genre" required class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-teal">
+              <option value="Poetry">Poetry (up to 3 poems)</option>
+              <option value="Personal Essays">Personal Essay (600–1,800 words)</option>
+              <option value="Short Fiction">Short Fiction (300–2,000 words)</option>
+              <option value="Cultural Commentary">Cultural Commentary</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Title of Piece *</label>
+            <input type="text" name="piece_title" required placeholder="Untitled or working title" class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Google Doc Link (or Paste Draft Below) *</label>
+          <input type="url" name="doc_link" placeholder="https://docs.google.com/document/d/..." class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal mb-3" />
+          <textarea name="manuscript_text" rows="5" placeholder="Optional: Paste your poem, excerpt, or full draft here if you don't have a Google Doc link handy..." class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">Short Author Bio (Max 40 words) *</label>
+          <input type="text" name="author_bio" required placeholder="e.g., Riya is a second-year CSE student at KIIT who writes about midnight trains and monsoon evenings." class="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal" />
+        </div>
+
+        <div class="p-4 rounded-xl bg-archival border border-gray-200">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" name="rights_consent" required class="mt-1 w-4 h-4 accent-teal rounded" />
+            <span class="text-xs text-gray-700 leading-relaxed">
+              I confirm this submission is my original, unpublished work. If submitting to the <strong>Public Archive</strong>, I grant NagozLibrary non-exclusive rights to publish, archive, excerpt, and promote this piece across social media with full credit to me. I retain full copyright.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 px-6 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal-dark transition-colors shadow-sm">
+          Send Manuscript to the Student Librarian
+        </button>
+
+        <div id="form-feedback" class="hidden p-4 rounded-xl bg-teal-light border border-teal/30 text-teal-dark text-sm font-medium text-center">
+          Manuscript received! The Student Librarian will review your draft and reach out soon.
+        </div>
+      </form>
     </div>
+  </section>
 
-    <!-- Application Logic -->
-    <script>
-        // Sample Catalog Data (6 Rich Student Pieces across KIIT University & Global Campuses)
-        const ARCHIVE_PIECES = [
-            {
-                id: 'monsoon-patia',
-                title: 'Cartography of a 2 AM Chai Stall',
-                author: 'Aarav Mohanty',
-                affiliation: 'KIIT University',
-                campusDetail: 'KIIT University, Bhubaneswar',
-                genre: 'Personal Essays',
-                featured: true,
-                readTime: '4 min read',
-                excerpt: '“Between Campus 6 and the highway, every sleepless engineering student eventually trades algorithms for ginger tea and accidental philosophy.”',
-                body: `At 1:45 AM, the streetlights outside Campus 6 hum like tired cicadas. During the day, this stretch of Patia is a blur of ID lanyards, hurried footsteps, and attendance anxieties. After midnight, it belongs entirely to the insomniacs.\n\nAround the rusted aluminum kettle, nobody asks about your CGPA or whether your code compiled on the first run. Someone from third-year Mechanical argues about Tarkovsky films while stirring sugar into a paper cup; two hostel roommates debate whether leaving home at eighteen makes you independent or just fluent in nostalgia.\n\n“Between Campus 6 and the highway, every sleepless engineering student eventually trades algorithms for ginger tea and accidental philosophy.”\n\nWhen we graduate, we will forget half the formulas we memorized for mid-semesters. What stays is the geography of small kindnesses—the vendor who remembers you take extra ginger before an exam, and the quiet solidarity of strangers sharing a bench under the July rain.`,
-                bio: 'Aarav Mohanty is a final-year Computer Science student at KIIT University who writes essays on urban memory, hostel life, and midnight walks.'
-            },
-            {
-                id: 'letters-untranslated',
-                title: 'How to Fold a Mother Tongue',
-                author: 'Meera Nair',
-                affiliation: 'Global Student',
-                campusDetail: 'University of Toronto, Canada',
-                genre: 'Poetry',
-                featured: true,
-                readTime: '2 min read',
-                excerpt: '“I pack my grandmother’s vowels inside a carry-on suitcase,\nafraid customs will ask me to declare\nwhat cannot be weighed in kilograms.”',
-                body: `I pack my grandmother’s vowels inside a carry-on suitcase,\nafraid customs will ask me to declare\nwhat cannot be weighed in kilograms.\n\nIn lecture halls of three hundred coats,\nmy accent learns to iron itself flat—\na polite guest wiping its shoes at the door.\n\nYet every evening over boiling rice,\nthe old syllables rise like steam against the windowpane,\nreminding me that fluency is not forgetting where you began,\nbut keeping two skies open in the same chest.`,
-                bio: 'Meera Nair is an undergraduate Literature and Cognitive Science student in Toronto exploring diaspora, bilingualism, and lyric poetry.'
-            },
-            {
-                id: 'library-fourth-floor',
-                title: 'The Boy Who Shelved Unfinished Novels',
-                author: 'Rohan Dasgupta',
-                affiliation: 'KIIT University',
-                campusDetail: 'KIIT University, Bhubaneswar',
-                genre: 'Short Fiction',
-                featured: false,
-                readTime: '5 min read',
-                excerpt: '“On the back page of every returned paperback, he penciled a single sentence—leaving breadcrumbs for the next lonely reader.”',
-                body: `Dev worked the evening shift at the Central Library’s quietest wing, where the ceiling fans turned with the slow dignity of metronomes. His official duty was returning overdue reference books to their Dewey Decimal homes. His unofficial vocation was rescuing abandoned stories.\n\nWhenever he found a folded bus ticket or a pressed gulmohar petal tucked inside a novel, Dev left it undisturbed. On the final blank flyleaf, in light 2B pencil, he wrote a single sentence continuing the previous reader’s thought.\n\n“On the back page of every returned paperback, he penciled a single sentence—leaving breadcrumbs for the next lonely reader.”\n\nThree months later, he opened a battered copy of Calvino and found a reply written beneath his own line, in blue fountain ink, asking who he was.`,
-                bio: 'Rohan Dasgupta studies Electronics Engineering at KIIT University and writes magical realism set in libraries, train stations, and coastal towns.'
-            },
-            {
-                id: 'notes-app-generation',
-                title: 'In Defense of the Notes App Archive',
-                author: 'Clara Lindqvist',
-                affiliation: 'Global Student',
-                campusDetail: 'Uppsala University, Sweden',
-                genre: 'Cultural Commentary',
-                featured: false,
-                readTime: '4 min read',
-                excerpt: '“Before a poem ever meets a publisher’s desk, it lives beside a grocery list and a half-typed text message never sent.”',
-                body: `Scroll through any university student’s phone and you will find an accidental literary magazine hidden inside their Notes app. Sandwiched between Wi-Fi passwords and laundry reminders are raw three-line stanzas written on night buses, fragments of overheard café dialogue, and unfiltered paragraphs drafted at 3 AM.\n\nFor decades, young writers waited for institutional gatekeepers to validate their notebooks. Today, our most honest literature is typed with two thumbs on cracked screens.\n\n“Before a poem ever meets a publisher’s desk, it lives beside a grocery list and a half-typed text message never sent.”\n\nThe task of student-led micro-presses isn’t to sanitize this immediacy, but to honor it—giving digital fragments the care, editing, and permanence of print.`,
-                bio: 'Clara Lindqvist is a Media Studies student at Uppsala University researching digital print culture and independent youth zines.'
-            },
-            {
-                id: 'monsoon-timetable',
-                title: 'Elegy for an Umbrella Left on Bus No. 14',
-                author: 'Sneha Pattnaik',
-                affiliation: 'KIIT University',
-                campusDetail: 'KIIT University, Bhubaneswar',
-                genre: 'Poetry',
-                featured: false,
-                readTime: '2 min read',
-                excerpt: '“July arrives in Odisha without knocking,\ndrum-rolling across tin roofs\nwhile we sprint between blocks with notebooks held like shields.”',
-                body: `July arrives in Odisha without knocking,\ndrum-rolling across tin roofs\nwhile we sprint between blocks with notebooks held like shields.\n\nSomewhere between Koel Campus and Master Canteen,\nmy blue folding umbrella is riding route fourteen alone,\nfaithful to a seat I vacated in a hurry.\n\nMay whoever claims it tomorrow\nwalk slower through the downpour than I did,\nand actually stop to watch the red earth steam.`,
-                bio: 'Sneha Pattnaik is a first-year Biotechnology student at KIIT University whose poems celebrate everyday campus rituals and seasonal rain.'
-            },
-            {
-                id: 'sunday-laundry-ritual',
-                title: 'What the Laundromat Knows About Homesickness',
-                author: 'Daniel Okafor',
-                affiliation: 'Global Student',
-                campusDetail: 'University of Manchester, UK',
-                genre: 'Personal Essays',
-                featured: false,
-                readTime: '4 min read',
-                excerpt: '“Adulting begins the exact Sunday you realize socks do not magically pair themselves in the dark.”',
-                body: `Every Sunday afternoon in Fallowfield, six washing machines spin in hypnotic unison while six undergraduates stare at their phones pretending not to miss home cooking.\n\nFor my first month away from Lagos, I measured time not in weeks of the semester, but in detergent pods. Watching shirts tumble behind round glass windows felt strangely meditative—a weekly reset button for every missed deadline and burnt pan of pasta.\n\n“Adulting begins the exact Sunday you realize socks do not magically pair themselves in the dark.”\n\nBy November, the laundromat stopped feeling like a chore and became a clubhouse. We traded spare coins, recipe voice notes from our mothers, and the quiet assurance that everyone was figuring it out one cycle at a time.`,
-                bio: 'Daniel Okafor studies Architecture at the University of Manchester and writes personal essays about student migration and everyday rituals.'
-            }
-        ];
+  <!-- Footer -->
+  <footer class="bg-charcoal text-gray-400 py-12 px-4 sm:px-6">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      <div>
+        <span class="font-editorial text-2xl text-white font-medium block mb-1">NagozLibrary</span>
+        <p class="text-xs text-gray-400">Student-run literary archive &amp; micro-press · KIIT University &amp; Global Student Writers.</p>
+      </div>
+      <div class="flex flex-wrap gap-5 text-xs">
+        <a href="#shelf" class="hover:text-white transition-colors">The Shelf</a>
+        <a href="#tracks" class="hover:text-white transition-colors">Tracks</a>
+        <a href="#submit" class="hover:text-white transition-colors">Submit</a>
+        <button onclick="openCmsModal()" class="text-mustard hover:underline">Google Sheets CMS Setup</button>
+      </div>
+    </div>
+  </footer>
 
-        // State Management
-        let currentGenre = 'All';
-        let currentAffiliation = 'All';
-        let searchQuery = '';
-        let activeModalPiece = null;
-        let deferredInstallPrompt = null;
+  <!-- Full Article Reader Modal -->
+  <div id="reader-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm overflow-y-auto p-4 sm:p-6">
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden my-8">
+      <div class="px-6 py-4 bg-archival border-b border-gray-200 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span id="modal-genre" class="px-2.5 py-0.5 rounded bg-charcoal text-white text-[11px] font-semibold"></span>
+          <span id="modal-affiliation" class="text-xs font-medium text-gray-600"></span>
+        </div>
+        <button onclick="closeReaderModal()" class="p-1.5 rounded-lg text-gray-500 hover:text-charcoal hover:bg-gray-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
 
-        // DOM Elements
-        const articlesGrid = document.getElementById('articles-grid');
-        const emptyShelf = document.getElementById('empty-shelf');
-        const searchInput = document.getElementById('shelf-search');
-        const affiliationSelect = document.getElementById('writer-affiliation');
-        const schoolDetailWrapper = document.getElementById('school-detail-wrapper');
-        const schoolNameInput = document.getElementById('school-name');
+      <div class="p-6 sm:p-10">
+        <h2 id="modal-title" class="font-editorial text-3xl sm:text-4xl font-medium text-charcoal mb-3 leading-tight"></h2>
+        <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-8 pb-6 border-b border-gray-200">
+          <span id="modal-author" class="font-bold text-charcoal"></span>
+          <span>·</span>
+          <span id="modal-school"></span>
+          <span>·</span>
+          <span id="modal-date"></span>
+          <span>·</span>
+          <span id="modal-readtime"></span>
+        </div>
 
-        // Initialize Dynamic Web App Manifest & Service Worker Fallback
-        function initPwaCapabilities() {
-            try {
-                // Custom SVG Monogram Icon ("N") encoded cleanly for manifest
-                const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#09090B"/><rect x="20" y="20" width="472" height="472" rx="80" fill="none" stroke="#0D9488" stroke-width="16"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#FFFFFF" font-family="Georgia, serif" font-size="290" font-weight="bold">N</text></svg>`;
-                const iconUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgIcon);
+        <div id="modal-content" class="font-editorial text-lg text-gray-800 leading-relaxed whitespace-pre-line mb-10"></div>
 
-                const manifestObj = {
-                    name: 'NagozLibrary — Student Literary Archive',
-                    short_name: 'NagozLibrary',
-                    description: 'Student-run literary archive, micro-press, and manuscript desk for KIIT University and global student writers.',
-                    start_url: window.location.pathname || '/',
-                    display: 'standalone',
-                    background_color: '#FFFFFF',
-                    theme_color: '#0D9488',
-                    icons: [
-                        {
-                            src: iconUrl,
-                            sizes: '512x512',
-                            type: 'image/svg+xml',
-                            purpose: 'any maskable'
-                        }
-                    ]
-                };
+        <!-- Author Bio Card -->
+        <div class="p-5 rounded-xl bg-archival border border-gray-200 mb-6">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-teal block mb-1">About the Author</span>
+          <p id="modal-bio" class="text-xs sm:text-sm text-gray-700 leading-relaxed"></p>
+        </div>
 
-                const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
-                const manifestUrl = URL.createObjectURL(manifestBlob);
-                const manifestLink = document.getElementById('pwa-manifest');
-                if (manifestLink) {
-                    manifestLink.setAttribute('href', manifestUrl);
-                }
+        <!-- Social Excerpt Copy Tool -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-gray-200">
+          <span class="text-xs text-gray-500">Share a quote card on Instagram or LinkedIn:</span>
+          <button id="copy-excerpt-btn" onclick="copySocialExcerpt()" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-teal text-white text-xs font-semibold hover:bg-teal-dark transition-colors">
+            Copy Social Excerpt
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                // Register lightweight inline Service Worker when supported over HTTPS/localhost
-                if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
-                    const swCode = `
-                        self.addEventListener('install', (e) => self.skipWaiting());
-                        self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-                        self.addEventListener('fetch', (e) => {
-                            e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-                        });
-                    `;
-                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(swBlob);
-                    navigator.serviceWorker.register(swUrl).catch(() => {
-                        // Silently ignore if hosted in a restricted sandbox iframe
-                    });
-                }
-            } catch (err) {
-                console.info('PWA manifest initialized in fallback mode.');
-            }
+  <!-- Librarian Google Sheets CMS Guide Modal -->
+  <div id="cms-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm overflow-y-auto p-4 sm:p-6">
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden my-8">
+      <div class="px-6 py-4 bg-charcoal text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-mustard"></span>
+          <h3 class="font-editorial text-xl font-medium">Librarian Live CMS (Google Sheets Setup)</h3>
+        </div>
+        <button onclick="closeCmsModal()" class="p-1.5 rounded-lg text-gray-400 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-6 sm:p-8 space-y-5 text-sm text-gray-700">
+        <p>
+          Scale to hundreds of student submissions without touching HTML again. Connect a free <strong>Google Sheet</strong> so any row marked <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">Published</code> appears automatically on The Shelf.
+        </p>
+
+        <div class="p-4 rounded-xl bg-archival border border-gray-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-charcoal">Step 1: Paste these exact headers in Row 1 (A1:L1)</span>
+            <button onclick="copySheetHeaders()" id="copy-headers-btn" class="px-2.5 py-1 rounded bg-teal text-white text-[11px] font-semibold hover:bg-teal-dark">
+              Copy Headers
+            </button>
+          </div>
+          <code class="block text-xs font-mono bg-white p-2.5 rounded border border-gray-200 overflow-x-auto text-charcoal">
+            title	author	affiliation	school	genre	featured	date	readTime	bio	excerpt	content	status
+          </code>
+        </div>
+
+        <ol class="list-decimal pl-5 space-y-2 text-xs sm:text-sm text-gray-700">
+          <li>In Google Sheets, go to <strong>File → Share → Publish to web</strong>.</li>
+          <li>Select your sheet tab, change <em>Web page</em> to <strong>Comma-separated values (.csv)</strong>, click <strong>Publish</strong>, and copy the URL.</li>
+          <li>Open <code class="bg-gray-100 px-1 rounded">index.html</code> on GitHub, paste that URL into <code class="bg-gray-100 px-1 rounded">const SHEET_CSV_URL = "..."</code> at the top of the script, and commit.</li>
+          <li>To publish future poems, simply add a row in Google Sheets and set <strong>status</strong> to <code class="bg-gray-100 px-1 rounded">Published</code>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Install App Fallback Instructions Modal -->
+  <div id="install-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm p-4 flex items-center justify-center">
+    <div class="max-w-md w-full bg-white rounded-2xl p-6 border border-gray-200 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-editorial text-2xl font-medium text-charcoal">Install NagozLibrary</h3>
+        <button onclick="document.getElementById('install-modal').classList.add('hidden')" class="text-gray-400 hover:text-charcoal">✕</button>
+      </div>
+      <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+        Add NagozLibrary directly to your phone or desktop home screen for instant offline-ready reading:
+      </p>
+      <div class="space-y-3 text-xs text-gray-700 bg-archival p-4 rounded-xl border border-gray-200">
+        <p><strong>iPhone / iPad (Safari):</strong> Tap the <strong>Share</strong> icon at the bottom of your browser, scroll down, and tap <strong>Add to Home Screen</strong>.</p>
+        <p><strong>Android (Chrome):</strong> Tap the <strong>⋮ Menu</strong> in the top-right corner and select <strong>Install app</strong> or <strong>Add to Home screen</strong>.</p>
+        <p><strong>Desktop (Chrome / Edge):</strong> Click the <strong>Install icon</strong> inside the right side of the address bar.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. GOOGLE SHEETS LIVE CMS CONFIGURATION
+    // Paste your Google Sheet "Publish to web -> CSV" link inside the quotes below:
+    // =========================================================================
+    const SHEET_CSV_URL = "";
+
+    // Built-in Starter Shelf (Displayed automatically until SHEET_CSV_URL is added)
+    const fallbackWritingsData = [
+      {
+        id: 1,
+        title: "Monsoon Over Patia",
+        author: "Ananya Mohanty",
+        affiliation: "KIIT University",
+        school: "KIIT University, Bhubaneswar",
+        genre: "Poetry",
+        featured: true,
+        date: "Nov 2026",
+        readTime: "2 min read",
+        bio: "Ananya is a third-year Electronics student at KIIT University who writes poetry between lab sessions and evening chai runs in Patia.",
+        excerpt: "The hostel tin roofs remember every monsoon\nbefore the concrete learned to hold the heat.\nWe count our semesters in puddles\nand half-finished drafts left open on the sill.",
+        content: "The hostel tin roofs remember every monsoon\nbefore the concrete learned to hold the heat.\nWe count our semesters in puddles\nand half-finished drafts left open on the sill.\n\nDown by Campus 6, the streetlights flicker\nlike hesitant footnotes in an unfinished essay.\nSomeone strums an out-of-tune guitar\nwhile the rain edits the noise of the highway\ninto something soft enough to sleep inside.\n\nWe came here carrying suitcases of expectations,\nonly to find our real syllabus written\nin wet ink on the margins of borrowed notebooks."
+      },
+      {
+        id: 2,
+        title: "The Architecture of Unsent Messages",
+        author: "Daniel Mensah",
+        affiliation: "Global",
+        school: "KNUST, Kumasi",
+        genre: "Personal Essays",
+        featured: true,
+        date: "Nov 2026",
+        readTime: "4 min read",
+        bio: "Daniel studies Architecture in Ghana and writes personal essays exploring digital memory, distance, and late-night campus life.",
+        excerpt: "Every student phone carries a graveyard of paragraphs typed at 2:14 AM and deleted before sunrise—blueprints of honesty we never quite dared to build.",
+        content: "Every student phone carries a graveyard of paragraphs typed at 2:14 AM and deleted before sunrise—blueprints of honesty we never quite dared to build.\n\nIn architecture studio, we are taught that every load-bearing wall must account for tension. Yet in our daily conversations, we design around silence. We draft apologies in our Notes app, edit out the vulnerability until only a polite 'Hey, how have you been?' survives the cut.\n\nPerhaps that is why student literary archives matter. They give permission for the unedited beam to show—for the raw scaffolding of who we are at twenty-one to stand in daylight without needing an algorithm's approval."
+      },
+      {
+        id: 3,
+        title: "Platform 4 at Bhubaneswar Station",
+        author: "Rohan Das",
+        affiliation: "KIIT University",
+        school: "KIIT University, Bhubaneswar",
+        genre: "Short Fiction",
+        featured: false,
+        date: "Nov 2026",
+        readTime: "5 min read",
+        bio: "Rohan is a mechanical engineering undergrad at KIIT whose short fiction focuses on transit, strangers, and small-town homecomings.",
+        excerpt: "The Konark Express was delayed by ninety minutes, which gave Kabir just enough time to realize he had packed the wrong book and the right regrets.",
+        content: "The Konark Express was delayed by ninety minutes, which gave Kabir just enough time to realize he had packed the wrong book and the right regrets.\n\nOn the steel bench beside him sat an elderly retired librarian sorting laminated newspaper clippings into a battered leather folder. Every few minutes, the old man underlined a sentence with a red ballpoint pen.\n\n'You're revising the news?' Kabir asked, nodding toward the folder.\n\n'I'm rescuing the lines worth keeping,' the librarian replied without looking up. 'Most of what gets printed is noise. A good archivist simply makes sure the quiet truths don't get thrown out with yesterday's paper.'"
+      },
+      {
+        id: 4,
+        title: "Why Campus Cafes Are Our Real Lecture Halls",
+        author: "Meera Subramanian",
+        affiliation: "Global",
+        school: "University of Toronto, Canada",
+        genre: "Cultural Commentary",
+        featured: false,
+        date: "Oct 2026",
+        readTime: "3 min read",
+        bio: "Meera is an economics and literature double major examining youth culture, third spaces, and independent student publishing.",
+        excerpt: "Long after we forget the formulas written on whiteboards, we remember the arguments we had over lukewarm coffee at 6 PM.",
+        content: "Long after we forget the formulas written on whiteboards, we remember the arguments we had over lukewarm coffee at 6 PM.\n\nUniversities spend millions designing smart classrooms, yet the most durable intellectual collisions still happen around wobbly cafe tables. There is no syllabus at a corner booth—only peers testing half-formed ideas against each other without fear of a grading rubric.\n\nWhen students document those conversations in zines, essays, and micro-presses, a campus stops being merely a credential factory and becomes a living literary community."
+      }
+    ];
+
+    let allWritings = [...fallbackWritingsData];
+    let filteredWritings = [...allWritings];
+    let currentGenre = "All";
+    let currentAffiliation = "All";
+    let searchQuery = "";
+    let visibleLimit = 9;
+    let activeModalPiece = null;
+
+    // =========================================================================
+    // 2. LOAD DATA FROM GOOGLE SHEETS (IF CONFIGURED)
+    // =========================================================================
+    function initCatalog() {
+      if (!SHEET_CSV_URL || SHEET_CSV_URL.trim() === "") {
+        allWritings = [...fallbackWritingsData];
+        applyFilters();
+        return;
+      }
+
+      const badge = document.getElementById("cms-status-badge");
+      badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-teal animate-pulse"></span> Syncing Live Catalog...`;
+
+      Papa.parse(SHEET_CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          const publishedRows = results.data
+            .filter(row => row.title && (!row.status || row.status.trim().toLowerCase() === "published"))
+            .map((row, idx) => ({
+              id: idx + 1,
+              title: row.title.trim(),
+              author: (row.author || "Anonymous Student").trim(),
+              affiliation: (row.affiliation || "Global").trim(),
+              school: (row.school || "Student Contributor").trim(),
+              genre: (row.genre || "Poetry").trim(),
+              featured: String(row.featured).trim().toLowerCase() === "true",
+              date: (row.date || "2026").trim(),
+              readTime: (row.readTime || "3 min read").trim(),
+              bio: (row.bio || "Student writer archived at NagozLibrary.").trim(),
+              excerpt: (row.excerpt || row.content || "").trim(),
+              content: (row.content || row.excerpt || "").replace(/\\n/g, "\n").trim()
+            }))
+            .reverse(); // Newest rows at top
+
+          if (publishedRows.length > 0) {
+            allWritings = publishedRows;
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-teal"></span> Live Google Sheets Archive`;
+          } else {
+            allWritings = [...fallbackWritingsData];
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-mustard"></span> Curated Starter Archive`;
+          }
+          applyFilters();
+        },
+        error: function() {
+          allWritings = [...fallbackWritingsData];
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-mustard"></span> Curated Starter Archive`;
+          applyFilters();
         }
+      });
+    }
 
-        // Listen for native PWA install prompt
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredInstallPrompt = e;
+    // =========================================================================
+    // 3. FILTERING, SEARCH & PAGINATION
+    // =========================================================================
+    function applyFilters() {
+      filteredWritings = allWritings.filter(item => {
+        const matchesGenre = currentGenre === "All" || item.genre.toLowerCase() === currentGenre.toLowerCase();
+        const matchesAffiliation = currentAffiliation === "All" || item.affiliation.toLowerCase().includes(currentAffiliation.toLowerCase());
+        const q = searchQuery.toLowerCase();
+        const matchesSearch = !q ||
+          item.title.toLowerCase().includes(q) ||
+          item.author.toLowerCase().includes(q) ||
+          item.school.toLowerCase().includes(q) ||
+          item.excerpt.toLowerCase().includes(q);
+        return matchesGenre && matchesAffiliation && matchesSearch;
+      });
+
+      document.getElementById("catalog-count").textContent = `${filteredWritings.length} ${filteredWritings.length === 1 ? "piece" : "pieces"}`;
+      renderShelf();
+    }
+
+    function renderShelf() {
+      const grid = document.getElementById("writings-grid");
+      const emptyState = document.getElementById("empty-state");
+      const paginationWrap = document.getElementById("pagination-wrap");
+
+      if (filteredWritings.length === 0) {
+        grid.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        paginationWrap.classList.add("hidden");
+        return;
+      }
+
+      emptyState.classList.add("hidden");
+      const slice = filteredWritings.slice(0, visibleLimit);
+
+      grid.innerHTML = slice.map(piece => `
+        <article onclick="openReaderModal(${piece.id})" class="group cursor-pointer bg-white rounded-2xl border border-gray-200 p-6 hover:border-charcoal hover:shadow-md transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4">
+              <span class="px-2.5 py-0.5 rounded bg-archival border border-gray-200 text-charcoal text-[11px] font-semibold">
+                ${escapeHtml(piece.genre)}
+              </span>
+              ${piece.featured ? `<span class="px-2.5 py-0.5 rounded bg-mustard-light text-mustard-dark text-[11px] font-bold">★ Editor's Pick</span>` : `<span class="text-[11px] text-gray-400">${escapeHtml(piece.readTime)}</span>`}
+            </div>
+
+            <h3 class="font-editorial text-2xl font-medium text-charcoal group-hover:text-teal transition-colors mb-2 leading-snug">
+              ${escapeHtml(piece.title)}
+            </h3>
+
+            <p class="font-editorial italic text-sm text-gray-600 leading-relaxed whitespace-pre-line line-clamp-4 mb-6 border-l-2 border-gray-200 pl-3.5 group-hover:border-teal transition-colors">
+              ${escapeHtml(piece.excerpt)}
+            </p>
+          </div>
+
+          <div class="pt-4 border-t border-gray-100 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-charcoal block">${escapeHtml(piece.author)}</span>
+              <span class="text-gray-500 text-[11px]">${escapeHtml(piece.school)}</span>
+            </div>
+            <span class="font-semibold text-teal group-hover:translate-x-0.5 transition-transform">Read →</span>
+          </div>
+        </article>
+      `).join("");
+
+      if (filteredWritings.length > visibleLimit) {
+        paginationWrap.classList.remove("hidden");
+      } else {
+        paginationWrap.classList.add("hidden");
+      }
+    }
+
+    function loadMoreWritings() {
+      visibleLimit += 9;
+      renderShelf();
+    }
+
+    function resetFilters() {
+      currentGenre = "All";
+      currentAffiliation = "All";
+      searchQuery = "";
+      visibleLimit = 9;
+      document.getElementById("search-input").value = "";
+      document.getElementById("affiliation-filter").value = "All";
+      document.querySelectorAll(".genre-btn").forEach(btn => {
+        btn.className = btn.dataset.genre === "All"
+          ? "genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-charcoal text-white transition-colors"
+          : "genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-archival text-gray-700 hover:bg-gray-200 transition-colors";
+      });
+      applyFilters();
+    }
+
+    // Event Listeners for Filters
+    document.querySelectorAll(".genre-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentGenre = btn.dataset.genre;
+        visibleLimit = 9;
+        document.querySelectorAll(".genre-btn").forEach(b => {
+          b.className = b === btn
+            ? "genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-charcoal text-white transition-colors"
+            : "genre-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-archival text-gray-700 hover:bg-gray-200 transition-colors";
         });
+        applyFilters();
+      });
+    });
 
-        async function triggerPwaInstall() {
-            if (deferredInstallPrompt) {
-                deferredInstallPrompt.prompt();
-                const { outcome } = await deferredInstallPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    showToast('NagozLibrary installed! Find it on your home screen.');
-                }
-                deferredInstallPrompt = null;
-            } else {
-                openPwaModal();
-            }
-        }
+    document.getElementById("affiliation-filter").addEventListener("change", (e) => {
+      currentAffiliation = e.target.value;
+      visibleLimit = 9;
+      applyFilters();
+    });
 
-        // Generate Live Scannable QR Codes for App Install & Manuscript Submission
-        function renderQrCodes() {
-            const baseUrl = window.location.origin && window.location.origin !== 'null'
-                ? window.location.origin + window.location.pathname
-                : 'https://nagozlibrary.netlify.app/';
-            const submitUrl = baseUrl.split('#')[0] + '#submit';
+    document.getElementById("search-input").addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      visibleLimit = 9;
+      applyFilters();
+    });
 
-            const installContainer = document.getElementById('qr-install-app');
-            const submitContainer = document.getElementById('qr-submit-draft');
+    // =========================================================================
+    // 4. READER & CMS MODALS
+    // =========================================================================
+    function openReaderModal(id) {
+      const piece = allWritings.find(w => w.id === id);
+      if (!piece) return;
+      activeModalPiece = piece;
 
-            if (typeof QRCode !== 'undefined') {
-                installContainer.innerHTML = '';
-                new QRCode(installContainer, {
-                    text: baseUrl,
-                    width: 124,
-                    height: 124,
-                    colorDark: '#09090B',
-                    colorLight: '#FFFFFF',
-                    correctLevel: QRCode.CorrectLevel.M
-                });
+      document.getElementById("modal-genre").textContent = piece.genre;
+      document.getElementById("modal-affiliation").textContent = piece.affiliation;
+      document.getElementById("modal-title").textContent = piece.title;
+      document.getElementById("modal-author").textContent = piece.author;
+      document.getElementById("modal-school").textContent = piece.school;
+      document.getElementById("modal-date").textContent = piece.date;
+      document.getElementById("modal-readtime").textContent = piece.readTime;
+      document.getElementById("modal-content").textContent = piece.content;
+      document.getElementById("modal-bio").textContent = piece.bio;
+      document.getElementById("copy-excerpt-btn").textContent = "Copy Social Excerpt";
 
-                submitContainer.innerHTML = '';
-                new QRCode(submitContainer, {
-                    text: submitUrl,
-                    width: 124,
-                    height: 124,
-                    colorDark: '#09090B',
-                    colorLight: '#FFFFFF',
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-            }
-        }
+      document.getElementById("reader-modal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
 
-        // Download High-Resolution Printable PNG Card of Either QR Code
-        function downloadQrPng(containerId, filename) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
+    function closeReaderModal() {
+      document.getElementById("reader-modal").classList.add("hidden");
+      document.body.style.overflow = "";
+    }
 
-            const sourceCanvas = container.querySelector('canvas');
-            const sourceImg = container.querySelector('img');
+    function copySocialExcerpt() {
+      if (!activeModalPiece) return;
+      const shareText = `"${activeModalPiece.excerpt}"\n\n— "${activeModalPiece.title}" by ${activeModalPiece.author} (${activeModalPiece.school})\nArchived at NagozLibrary (${window.location.origin})`;
+      navigator.clipboard.writeText(shareText).then(() => {
+        const btn = document.getElementById("copy-excerpt-btn");
+        btn.textContent = "Copied to Clipboard ✓";
+        setTimeout(() => btn.textContent = "Copy Social Excerpt", 2500);
+      });
+    }
 
-            const exportCanvas = document.createElement('canvas');
-            exportCanvas.width = 420;
-            exportCanvas.height = 500;
-            const ctx = exportCanvas.getContext('2d');
+    function openCmsModal() {
+      document.getElementById("cms-modal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
 
-            // Crisp White Card Background & Charcoal Border
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-            ctx.strokeStyle = '#111827';
-            ctx.lineWidth = 8;
-            ctx.strokeRect(12, 12, exportCanvas.width - 24, exportCanvas.height - 24);
+    function closeCmsModal() {
+      document.getElementById("cms-modal").classList.add("hidden");
+      document.body.style.overflow = "";
+    }
 
-            // Top Accent Bar (Teal or Mustard)
-            ctx.fillStyle = containerId === 'qr-install-app' ? '#0D9488' : '#D97706';
-            ctx.fillRect(16, 16, exportCanvas.width - 32, 14);
+    function copySheetHeaders() {
+      const headers = "title\tauthor\taffiliation\tschool\tgenre\tfeatured\tdate\treadTime\tbio\texcerpt\tcontent\tstatus";
+      navigator.clipboard.writeText(headers).then(() => {
+        const btn = document.getElementById("copy-headers-btn");
+        btn.textContent = "Copied ✓";
+        setTimeout(() => btn.textContent = "Copy Headers", 2000);
+      });
+    }
 
-            // Header Text
-            ctx.fillStyle = '#09090B';
-            ctx.font = 'bold 26px Georgia, serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('NagozLibrary', exportCanvas.width / 2, 74);
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
 
-            ctx.fillStyle = '#4B5563';
-            ctx.font = '600 13px sans-serif';
-            const subtitle = containerId === 'qr-install-app'
-                ? 'SCAN TO INSTALL THE STUDENT ARCHIVE APP'
-                : 'SCAN TO SUBMIT YOUR WRITING DRAFT';
-            ctx.fillText(subtitle, exportCanvas.width / 2, 102);
+    // =========================================================================
+    // 5. QR CODES & BRANDED POSTER PNG GENERATOR
+    // =========================================================================
+    function generateQrCodes() {
+      const baseUrl = window.location.origin && window.location.origin !== "null"
+        ? window.location.origin + window.location.pathname
+        : "https://nagozlibrary.netlify.app";
 
-            const drawAndSave = (imgSource) => {
-                ctx.drawImage(imgSource, 80, 128, 260, 260);
-                ctx.fillStyle = '#111827';
-                ctx.font = '500 14px sans-serif';
-                ctx.fillText('KIIT University • Global Student Micro-Press', exportCanvas.width / 2, 434);
-                ctx.fillStyle = '#0D9488';
-                ctx.font = 'bold 12px monospace';
-                ctx.fillText('nagozlibrary.netlify.app', exportCanvas.width / 2, 460);
+      const installUrl = baseUrl;
+      const submitUrl = baseUrl.replace(/#.*$/, "") + "#submit";
 
-                const link = document.createElement('a');
-                link.download = filename;
-                link.href = exportCanvas.toDataURL('image/png');
-                link.click();
-                showToast(`Downloaded ${filename} for printing!`);
-            };
+      new QRCode(document.getElementById("qr-install"), {
+        text: installUrl,
+        width: 176,
+        height: 176,
+        colorDark: "#111827",
+        colorLight: "#FFFFFF",
+        correctLevel: QRCode.CorrectLevel.H
+      });
 
-            if (sourceCanvas) {
-                drawAndSave(sourceCanvas);
-            } else if (sourceImg && sourceImg.src) {
-                const tempImg = new Image();
-                tempImg.onload = () => drawAndSave(tempImg);
-                tempImg.src = sourceImg.src;
-            } else {
-                showToast('QR code is still rendering, please try again.');
-            }
-        }
+      new QRCode(document.getElementById("qr-submit"), {
+        text: submitUrl,
+        width: 176,
+        height: 176,
+        colorDark: "#0F766E",
+        colorLight: "#FFFFFF",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
 
-        // Render Archive Cards
-        function renderShelf() {
-            const filtered = ARCHIVE_PIECES.filter(piece => {
-                const matchesGenre = currentGenre === 'All' || piece.genre === currentGenre;
-                const matchesAffil = currentAffiliation === 'All' || piece.affiliation === currentAffiliation;
-                const q = searchQuery.toLowerCase().trim();
-                const matchesSearch = !q || 
-                    piece.title.toLowerCase().includes(q) ||
-                    piece.author.toLowerCase().includes(q) ||
-                    piece.excerpt.toLowerCase().includes(q) ||
-                    piece.campusDetail.toLowerCase().includes(q);
-                return matchesGenre && matchesAffil && matchesSearch;
-            });
+    function downloadQrPng(containerId, filename, headingText, subText) {
+      const container = document.getElementById(containerId);
+      const sourceCanvas = container.querySelector("canvas");
+      const sourceImg = container.querySelector("img");
 
-            if (filtered.length === 0) {
-                articlesGrid.innerHTML = '';
-                emptyShelf.classList.remove('hidden');
-                return;
-            }
+      const exportCanvas = document.createElement("canvas");
+      exportCanvas.width = 600;
+      exportCanvas.height = 760;
+      const ctx = exportCanvas.getContext("2d");
 
-            emptyShelf.classList.add('hidden');
-            articlesGrid.innerHTML = filtered.map(piece => {
-                const isKiit = piece.affiliation === 'KIIT University';
-                const badgeStyle = isKiit 
-                    ? 'bg-tealLight text-tealHover border-tealAccent/30' 
-                    : 'bg-paperDark text-inkMuted border-borderStrong';
+      // Background Card
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, 600, 760);
 
-                const featuredTag = piece.featured 
-                    ? `<span class="px-2 py-0.5 rounded bg-mustardLight text-mustard text-[10px] font-bold uppercase tracking-wider">Editor's Pick</span>` 
-                    : '';
+      // Border Frame
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 8;
+      ctx.strokeRect(24, 24, 552, 712);
 
-                return `
-                    <article onclick="openReaderModal('${piece.id}')" class="group cursor-pointer rounded-2xl bg-paper border border-borderStrong hover:border-tealAccent p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-                        <div>
-                            <!-- Top Badges -->
-                            <div class="flex items-center justify-between gap-2 mb-4">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-semibold text-tealAccent">${piece.genre}</span>
-                                    ${featuredTag}
-                                </div>
-                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${badgeStyle}">
-                                    ${piece.affiliation}
-                                </span>
-                            </div>
+      // Top Header Bar
+      ctx.fillStyle = "#111827";
+      ctx.fillRect(24, 24, 552, 92);
 
-                            <!-- Title -->
-                            <h3 class="font-serif text-2xl font-normal text-obsidian group-hover:text-tealAccent transition-colors leading-snug mb-3">
-                                ${piece.title}
-                            </h3>
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 30px Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.fillText("NagozLibrary", 300, 80);
 
-                            <!-- Excerpt -->
-                            <p class="font-serif italic text-sm text-inkMuted leading-relaxed line-clamp-3 mb-6">
-                                ${piece.excerpt}
-                            </p>
-                        </div>
+      // Title
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 24px sans-serif";
+      ctx.fillText(headingText, 300, 175);
 
-                        <!-- Card Footer -->
-                        <div class="pt-4 border-t border-borderWarm flex items-center justify-between text-xs">
-                            <div>
-                                <p class="font-semibold text-obsidian">${piece.author}</p>
-                                <p class="text-inkMuted text-[11px]">${piece.campusDetail}</p>
-                            </div>
-                            <span class="inline-flex items-center gap-1 font-semibold text-tealAccent group-hover:translate-x-0.5 transition-transform">
-                                Read <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </span>
-                        </div>
-                    </article>
-                `;
-            }).join('');
-        }
+      // Subtitle
+      ctx.fillStyle = "#4B5563";
+      ctx.font = "18px sans-serif";
+      ctx.fillText(subText, 300, 210);
 
-        // Filter Event Listeners
-        document.querySelectorAll('.genre-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.genre-btn').forEach(b => {
-                    b.classList.remove('bg-tealAccent', 'text-paper');
-                    b.classList.add('bg-paperDark', 'text-inkMuted', 'border', 'border-borderWarm');
-                });
-                btn.classList.remove('bg-paperDark', 'text-inkMuted', 'border', 'border-borderWarm');
-                btn.classList.add('bg-tealAccent', 'text-paper');
-                currentGenre = btn.dataset.genre;
-                renderShelf();
-            });
+      // Draw QR
+      const qrSize = 360;
+      const qrX = (600 - qrSize) / 2;
+      const qrY = 245;
+      if (sourceCanvas) {
+        ctx.drawImage(sourceCanvas, qrX, qrY, qrSize, qrSize);
+      } else if (sourceImg) {
+        ctx.drawImage(sourceImg, qrX, qrY, qrSize, qrSize);
+      }
+
+      // Footer Tagline
+      ctx.fillStyle = "#0D9488";
+      ctx.font = "bold 16px sans-serif";
+      ctx.fillText("KIIT UNIVERSITY & GLOBAL STUDENT WRITERS", 300, 665);
+
+      ctx.fillStyle = "#6B7280";
+      ctx.font = "14px sans-serif";
+      ctx.fillText("Student-Run Literary Archive & Micro-Press", 300, 695);
+
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = exportCanvas.toDataURL("image/png");
+      link.click();
+    }
+
+    // =========================================================================
+    // 6. PWA MANIFEST & INSTALL PROMPT
+    // =========================================================================
+    let deferredPrompt = null;
+
+    function setupPwa() {
+      const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#111827"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#FFFFFF" font-family="Georgia, serif" font-size="300" font-weight="bold">N</text><circle cx="400" cy="120" r="36" fill="#D97706"/></svg>`;
+      const iconUrl = "data:image/svg+xml;base64," + btoa(svgIcon);
+
+      const manifest = {
+        name: "NagozLibrary — Student Literary Archive",
+        short_name: "NagozLibrary",
+        start_url: ".",
+        display: "standalone",
+        background_color: "#FFFFFF",
+        theme_color: "#111827",
+        icons: [
+          { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+        ]
+      };
+
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+      document.getElementById("pwa-manifest").setAttribute("href", URL.createObjectURL(manifestBlob));
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+      });
+    }
+
+    function triggerInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
         });
+      } else {
+        document.getElementById("install-modal").classList.remove("hidden");
+      }
+    }
 
-        document.querySelectorAll('.affil-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.affil-btn').forEach(b => {
-                    b.classList.remove('bg-obsidian', 'text-paper', 'shadow-sm', 'font-semibold');
-                    b.classList.add('text-inkMuted', 'font-medium');
-                });
-                btn.classList.remove('text-inkMuted', 'font-medium');
-                btn.classList.add('bg-obsidian', 'text-paper', 'shadow-sm', 'font-semibold');
-                currentAffiliation = btn.dataset.affiliation;
-                renderShelf();
-            });
-        });
+    // =========================================================================
+    // 7. AJAX NETLIFY FORM SUBMISSION HANDLER
+    // =========================================================================
+    document.getElementById("submission-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
 
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value;
-            renderShelf();
-        });
+      fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(formData).toString()
+      })
+      .then(() => {
+        form.reset();
+        document.getElementById("form-feedback").classList.remove("hidden");
+      })
+      .catch(() => {
+        // Fallback standard submit if tested locally outside Netlify
+        form.submit();
+      });
+    });
 
-        function resetFilters() {
-            currentGenre = 'All';
-            currentAffiliation = 'All';
-            searchQuery = '';
-            searchInput.value = '';
-            document.querySelector('.genre-btn[data-genre="All"]').click();
-            document.querySelector('.affil-btn[data-affiliation="All"]').click();
-        }
-
-        // Reader Modal Controls
-        function openReaderModal(pieceId) {
-            const piece = ARCHIVE_PIECES.find(p => p.id === pieceId);
-            if (!piece) return;
-
-            activeModalPiece = piece;
-            document.getElementById('modal-genre').textContent = piece.genre;
-            document.getElementById('modal-affiliation').textContent = piece.campusDetail;
-            document.getElementById('modal-title').textContent = piece.title;
-            document.getElementById('modal-meta').textContent = `By ${piece.author} • ${piece.readTime}`;
-            document.getElementById('modal-excerpt').textContent = piece.excerpt;
-            document.getElementById('modal-body').textContent = piece.body;
-            document.getElementById('modal-bio').textContent = piece.bio;
-            document.getElementById('modal-avatar').textContent = piece.author.charAt(0);
-
-            document.getElementById('reader-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeReaderModal() {
-            document.getElementById('reader-modal').classList.add('hidden');
-            document.body.style.overflow = '';
-            activeModalPiece = null;
-        }
-
-        // Copy Social Excerpt (Uses execCommand fallback for reliable clipboard copy in iframes)
-        document.getElementById('copy-excerpt-btn').addEventListener('click', () => {
-            if (!activeModalPiece) return;
-            const formattedShareText = `${activeModalPiece.excerpt}\n\n— "${activeModalPiece.title}" by ${activeModalPiece.author} (${activeModalPiece.campusDetail})\nArchived via @NagozLibrary`;
-            
-            const tempTextarea = document.createElement('textarea');
-            tempTextarea.value = formattedShareText;
-            tempTextarea.style.position = 'fixed';
-            tempTextarea.style.opacity = '0';
-            document.body.appendChild(tempTextarea);
-            tempTextarea.select();
-            
-            try {
-                document.execCommand('copy');
-                showToast('Social excerpt copied! Ready to paste on Instagram or LinkedIn.');
-            } catch (err) {
-                showToast('Could not copy excerpt automatically.');
-            }
-            document.body.removeChild(tempTextarea);
-        });
-
-        // PWA Install Modal Controls
-        function openPwaModal() {
-            document.getElementById('pwa-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closePwaModal() {
-            document.getElementById('pwa-modal').classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        // Guidelines Modal Controls
-        function openGuidelinesModal() {
-            document.getElementById('guidelines-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeGuidelinesModal() {
-            document.getElementById('guidelines-modal').classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        // Close modals on backdrop click or Escape key
-        document.getElementById('reader-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'reader-modal') closeReaderModal();
-        });
-        document.getElementById('guidelines-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'guidelines-modal') closeGuidelinesModal();
-        });
-        document.getElementById('pwa-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'pwa-modal') closePwaModal();
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeReaderModal();
-                closeGuidelinesModal();
-                closePwaModal();
-            }
-        });
-
-        // Preselect Track from Dual-Track Cards
-        function preselectTrack(trackValue) {
-            const trackSelect = document.getElementById('submission-track');
-            if (trackSelect) {
-                trackSelect.value = trackValue;
-            }
-        }
-
-        // Show University/Country input when "Global Student" is chosen
-        affiliationSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'Global Student') {
-                schoolDetailWrapper.classList.remove('hidden');
-                schoolNameInput.setAttribute('required', 'required');
-            } else {
-                schoolDetailWrapper.classList.add('hidden');
-                schoolNameInput.removeAttribute('required');
-            }
-        });
-
-        // Netlify AJAX Form Submission Handler with Smooth Confirmation State
-        const submissionForm = document.getElementById('submission-form');
-        const submissionSuccess = document.getElementById('submission-success');
-        const successSummary = document.getElementById('success-summary');
-
-        submissionForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = document.getElementById('submit-btn');
-            const originalBtnHtml = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Logging in the Archive...</span>';
-
-            const formData = new FormData(submissionForm);
-            const writerName = formData.get('writer_name') || 'Writer';
-            const pieceTitle = formData.get('title') || 'your manuscript';
-            const selectedTrack = formData.get('track') || 'Public Archive';
-
-            try {
-                // Submit to Netlify endpoint via URL-encoded POST
-                await fetch('/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams(formData).toString()
-                });
-            } catch (error) {
-                // Graceful fallback if previewed locally outside Netlify's edge server
-                console.info('Local preview submission captured:', Object.fromEntries(formData));
-            }
-
-            // Transition to Confirmation State
-            successSummary.innerHTML = `Thank you, <strong class="text-obsidian">${writerName}</strong>! <em>"${pieceTitle}"</em> has been logged under the <strong class="text-tealAccent">${selectedTrack}</strong> track. Your Student Librarian will review your Google Doc and message you within 7 days.`;
-            submissionForm.classList.add('hidden');
-            submissionSuccess.classList.remove('hidden');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnHtml;
-            showToast('Manuscript submitted to NagozLibrary!');
-        });
-
-        function resetSubmissionForm() {
-            submissionForm.reset();
-            schoolDetailWrapper.classList.add('hidden');
-            submissionSuccess.classList.add('hidden');
-            submissionForm.classList.remove('hidden');
-        }
-
-        // Custom Toast Message Helper
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'px-4 py-3 rounded-xl bg-obsidian text-paper text-xs sm:text-sm font-medium shadow-lg border border-tealAccent/50 transition-all duration-300 transform translate-y-2 opacity-0';
-            toast.textContent = message;
-            container.appendChild(toast);
-
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            });
-
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3200);
-        }
-
-        // Initial Render & Setup
-        window.addEventListener('DOMContentLoaded', () => {
-            initPwaCapabilities();
-            renderQrCodes();
-            renderShelf();
-        });
-    </script>
+    // Initialize App
+    window.addEventListener("DOMContentLoaded", () => {
+      setupPwa();
+      generateQrCodes();
+      initCatalog();
+    });
+  </script>
 </body>
 </html>
